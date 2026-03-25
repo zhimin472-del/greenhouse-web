@@ -198,7 +198,7 @@
       border-radius: 20px;
       box-shadow: var(--card-shadow);
       padding: 22px 24px;
-      min-height: 132px;
+      min-height: 140px;
     }
 
     .info-card h3 {
@@ -215,6 +215,23 @@
       font-size: 18px;
       color: #46624b;
       line-height: 1.7;
+    }
+
+    .info-link-card {
+      text-decoration: none;
+      display: block;
+      color: inherit;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .info-link-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .arrow {
+      font-size: 24px;
+      color: var(--green-main);
+      font-weight: bold;
     }
 
     .footer-note {
@@ -378,11 +395,14 @@
           <p><span class="tag-mid">环境参数可实时更新显示</span></p>
         </div>
 
-        <div class="info-card">
-          <h3>📡 数据上传方式</h3>
-          <p><span class="tag-ok">Web 页面实时展示</span></p>
-          <p><span class="tag-mid">支持电脑端与手机浏览器访问</span></p>
-        </div>
+        <a class="info-link-card" href="trends.html">
+          <div class="info-card">
+            <h3>📈 环境参数趋势分析</h3>
+            <p>点击进入历史趋势页面</p>
+            <p>查看温度、湿度、光照和土壤湿度变化曲线</p>
+            <p class="arrow">进入分析页 →</p>
+          </div>
+        </a>
       </section>
 
       <div class="footer-note">
@@ -395,7 +415,7 @@
   <script>
     const topic = "messages/greenhouse";
 
-    // 这里替换成你重新生成的新 token
+    // 替换成你的新 token
     const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
 
     const statusEl = document.getElementById("status");
@@ -416,11 +436,10 @@
 
     client.on("connect", function () {
       statusEl.textContent = "已连接";
-
       client.subscribe(topic, function (err) {
         if (err) {
-          console.error("订阅失败：", err);
           statusEl.textContent = "订阅失败";
+          console.error(err);
         }
       });
     });
@@ -430,24 +449,22 @@
     });
 
     client.on("error", function (err) {
-      console.error("MQTT 连接错误：", err);
       statusEl.textContent = "连接失败";
+      console.error(err);
     });
 
     client.on("message", function (recvTopic, message) {
       const raw = message.toString();
-
       try {
         const data = JSON.parse(raw);
-
         tempEl.textContent = data.temp ?? "--";
         humiEl.textContent = data.humi ?? "--";
         lightEl.textContent = data.light ?? "--";
         soilEl.textContent = data.soil ?? "--";
         updateTimeEl.textContent = new Date().toLocaleString();
       } catch (e) {
-        console.error("JSON 解析失败：", e, raw);
         statusEl.textContent = "数据格式错误";
+        console.error(e);
       }
     });
   </script>
