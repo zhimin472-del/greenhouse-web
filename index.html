@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能大棚环境监测系统</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+      text-align: center;
+    }
+
+    .header {
+      background: #2f7d32;
+      color: white;
+      padding: 18px 10px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .sub {
+      margin: 16px 0 8px;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .status {
+      margin: 8px 0 20px;
+      font-size: 16px;
+    }
+
+    .status span {
+      font-weight: bold;
+      color: #2f7d32;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 10px 16px 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .label {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .value {
+      font-size: 34px;
+      font-weight: bold;
+      color: #2f7d32;
+    }
+
+    .footer {
+      margin: 10px 0 30px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .header {
+        font-size: 22px;
+      }
+      .value {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">智能大棚环境监测系统</div>
+  <div class="sub">环境参数远程监测页面</div>
+  <div class="status">连接状态：<span id="status">未连接</span></div>
+
+  <div class="container">
+    <div class="card">
+      <div class="label">温度</div>
+      <div class="value" id="temp">--</div>
+    </div>
+    <div class="card">
+      <div class="label">湿度</div>
+      <div class="value" id="humi">--</div>
+    </div>
+    <div class="card">
+      <div class="label">光照</div>
+      <div class="value" id="light">--</div>
+    </div>
+    <div class="card">
+      <div class="label">土壤湿度</div>
+      <div class="value" id="soil">--</div>
+    </div>
+  </div>
+
+  <div class="footer">最近更新时间：<span id="updateTime">--</span></div>
+    <script>
+  const topic = "messages/greenhouse";
+
+  // 把这里替换成你的完整 token
+  const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
+
+  const statusEl = document.getElementById("status");
+  const tempEl = document.getElementById("temp");
+  const humiEl = document.getElementById("humi");
+  const lightEl = document.getElementById("light");
+  const soilEl = document.getElementById("soil");
+  const updateTimeEl = document.getElementById("updateTime");
+
+  // 关键：不要把 token 拼到 URL 后面，改成放到 username
+  const client = mqtt.connect("wss://mqtt.flespi.io:443", {
+    username: FLESPI_TOKEN,
+    password: "",
+    clientId: "greenhouse_web_" + Math.random().toString(16).substr(2, 8),
+    clean: true,
+    connectTimeout: 4000,
+    reconnectPeriod: 1000
+  });
+
+  client.on("connect", function () {
+    console.log("MQTT 连接成功");
+    statusEl.textContent = "已连接";
+
+    client.subscribe(topic, function (err) {
+      if (err) {
+        console.error("订阅失败：", err);
+      } else {
+        console.log("订阅成功：", topic);
+      }
+    });
+  });
+
+  client.on("reconnect", function () {
+    console.log("正在重连...");
+    statusEl.textContent = "重连中";
+  });
+
+  client.on("error", function (err) {
+    console.error("MQTT 连接错误：", err);
+    statusEl.textContent = "连接失败";
+  });
+
+  client.on("message", function (recvTopic, message) {
+    console.log("收到消息：", recvTopic, message.toString());
+
+    try {
+      const data = JSON.parse(message.toString());
+
+      tempEl.textContent = data.temp ?? "--";
+      humiEl.textContent = data.humi ?? "--";
+      lightEl.textContent = data.light ?? "--";
+      soilEl.textContent = data.soil ?? "--";
+      updateTimeEl.textContent = new Date().toLocaleString();
+    } catch (e) {
+      console.error("JSON 解析失败：", e);
+    }
+  });
+  </script>
+</body>
+</html>
