@@ -6,168 +6,450 @@
   <title>智能大棚环境监测系统</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --green-main: #2f7d32;
+      --green-dark: #256a29;
+      --green-light: #e8f4ea;
+      --bg-main: #eef3ef;
+      --text-main: #2b2b2b;
+      --text-sub: #667085;
+      --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      --card-radius: 22px;
+    }
+
     body {
       margin: 0;
       font-family: "Microsoft YaHei", Arial, sans-serif;
-      background: #f5f7fa;
-      color: #222;
+      background: linear-gradient(180deg, #f3f6f4 0%, #edf3ef 100%);
+      color: var(--text-main);
+    }
+
+    .page {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page::before,
+    .page::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(75, 145, 84, 0.12) 0%, rgba(75, 145, 84, 0) 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .page::before {
+      left: -80px;
+      bottom: 40px;
+    }
+
+    .page::after {
+      right: -100px;
+      bottom: 20px;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(135deg, var(--green-dark), #5fa567);
+      color: #fff;
       text-align: center;
+      padding: 34px 16px 28px;
+      box-shadow: 0 4px 18px rgba(47, 125, 50, 0.25);
     }
 
-    .header {
-      background: #2f7d32;
-      color: white;
-      padding: 18px 10px;
-      font-size: 28px;
-      font-weight: bold;
+    .hero h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
 
-    .sub {
-      margin: 16px 0 8px;
+    .hero p {
+      margin: 12px 0 0;
+      font-size: 18px;
+      opacity: 0.95;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, calc(100% - 32px));
+      margin: 26px auto 34px;
+    }
+
+    .status-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 18px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px 28px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      backdrop-filter: blur(6px);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #48a04d;
+      box-shadow: 0 0 0 6px rgba(72, 160, 77, 0.12);
+      display: inline-block;
+    }
+
+    .status-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    .status-meta {
+      color: var(--text-sub);
       font-size: 16px;
-      color: #555;
     }
 
-    .status {
-      margin: 8px 0 20px;
+    .status-right {
+      color: var(--text-sub);
       font-size: 16px;
+      font-weight: 500;
     }
 
-    .status span {
-      font-weight: bold;
-      color: #2f7d32;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 10px 16px 30px;
+    .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 22px;
+      margin-bottom: 26px;
     }
 
     .card {
-      background: white;
-      border-radius: 14px;
-      padding: 22px 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 26px 24px 24px;
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
-    .label {
-      font-size: 18px;
-      color: #666;
-      margin-bottom: 12px;
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.10);
     }
 
-    .value {
+    .card-icon {
       font-size: 34px;
-      font-weight: bold;
-      color: #2f7d32;
+      margin-bottom: 10px;
     }
 
-    .footer {
-      margin: 10px 0 30px;
-      color: #666;
-      font-size: 14px;
+    .card-title {
+      font-size: 20px;
+      color: #4f5d52;
+      margin-bottom: 18px;
+      font-weight: 600;
     }
 
-    @media (max-width: 600px) {
-      .header {
+    .card-value {
+      font-size: 56px;
+      font-weight: 800;
+      color: var(--green-main);
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .card-unit {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--green-dark);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 22px 24px;
+      min-height: 132px;
+    }
+
+    .info-card h3 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      color: #38583d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card p {
+      margin: 10px 0;
+      font-size: 18px;
+      color: #46624b;
+      line-height: 1.7;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: #5f6e63;
+      font-size: 16px;
+      line-height: 1.8;
+      padding: 10px 12px 24px;
+    }
+
+    .tag-ok {
+      color: var(--green-main);
+      font-weight: 700;
+    }
+
+    .tag-mid {
+      color: #6f8f73;
+      font-weight: 600;
+    }
+
+    @media (max-width: 1100px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .card {
+        min-height: 200px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 26px 14px 22px;
+      }
+
+      .hero h1 {
+        font-size: 24px;
+      }
+
+      .hero p {
+        font-size: 15px;
+      }
+
+      .wrapper {
+        width: calc(100% - 20px);
+        margin: 18px auto 24px;
+      }
+
+      .status-panel {
+        padding: 16px 16px;
+        gap: 12px;
+      }
+
+      .status-text {
+        font-size: 17px;
+      }
+
+      .status-meta,
+      .status-right {
+        font-size: 14px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .card {
+        min-height: 170px;
+        padding: 20px 18px;
+      }
+
+      .card-icon {
+        font-size: 30px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        margin-bottom: 14px;
+      }
+
+      .card-value {
+        font-size: 46px;
+      }
+
+      .card-unit {
         font-size: 22px;
       }
-      .value {
-        font-size: 28px;
+
+      .info-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .info-card {
+        padding: 18px 18px;
+      }
+
+      .info-card h3 {
+        font-size: 20px;
+      }
+
+      .info-card p {
+        font-size: 16px;
+      }
+
+      .footer-note {
+        font-size: 14px;
+        padding-bottom: 18px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="header">智能大棚环境监测系统</div>
-  <div class="sub">环境参数远程监测页面</div>
-  <div class="status">连接状态：<span id="status">未连接</span></div>
+  <div class="page">
+    <header class="hero">
+      <h1>智能大棚环境监测系统</h1>
+      <p>基于 MQTT 的环境参数远程监测平台</p>
+    </header>
 
-  <div class="container">
-    <div class="card">
-      <div class="label">温度</div>
-      <div class="value" id="temp">--</div>
-    </div>
-    <div class="card">
-      <div class="label">湿度</div>
-      <div class="value" id="humi">--</div>
-    </div>
-    <div class="card">
-      <div class="label">光照</div>
-      <div class="value" id="light">--</div>
-    </div>
-    <div class="card">
-      <div class="label">土壤湿度</div>
-      <div class="value" id="soil">--</div>
-    </div>
+    <main class="wrapper">
+      <section class="status-panel">
+        <div class="status-left">
+          <span class="dot"></span>
+          <span class="status-text" id="status">未连接</span>
+          <span class="status-meta">Topic：messages/greenhouse</span>
+        </div>
+        <div class="status-right">最近更新时间：<span id="updateTime">--</span></div>
+      </section>
+
+      <section class="cards">
+        <div class="card">
+          <div class="card-icon">🌡️</div>
+          <div class="card-title">温度</div>
+          <div class="card-value"><span id="temp">--</span><span class="card-unit">℃</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">💧</div>
+          <div class="card-title">湿度</div>
+          <div class="card-value"><span id="humi">--</span><span class="card-unit">%</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">☀️</div>
+          <div class="card-title">光照</div>
+          <div class="card-value"><span id="light">--</span><span class="card-unit">lx</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌱</div>
+          <div class="card-title">土壤湿度</div>
+          <div class="card-value"><span id="soil">--</span><span class="card-unit">%</span></div>
+        </div>
+      </section>
+
+      <section class="info-grid">
+        <div class="info-card">
+          <h3>🟢 系统运行状态</h3>
+          <p><span class="tag-ok">MQTT 通信正常</span></p>
+          <p><span class="tag-mid">环境参数可实时更新显示</span></p>
+        </div>
+
+        <div class="info-card">
+          <h3>📡 数据上传方式</h3>
+          <p><span class="tag-ok">Web 页面实时展示</span></p>
+          <p><span class="tag-mid">支持电脑端与手机浏览器访问</span></p>
+        </div>
+      </section>
+
+      <div class="footer-note">
+        本页面用于展示智能大棚环境参数的远程实时监测结果，<br>
+        可通过电脑端和手机浏览器访问，用于系统演示与答辩展示。
+      </div>
+    </main>
   </div>
 
-  <div class="footer">最近更新时间：<span id="updateTime">--</span></div>
-    <script>
-  const topic = "messages/greenhouse";
+  <script>
+    const topic = "messages/greenhouse";
 
-  // 把这里替换成你的完整 token
-  const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
+    // 这里替换成你重新生成的新 token
+    const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
 
-  const statusEl = document.getElementById("status");
-  const tempEl = document.getElementById("temp");
-  const humiEl = document.getElementById("humi");
-  const lightEl = document.getElementById("light");
-  const soilEl = document.getElementById("soil");
-  const updateTimeEl = document.getElementById("updateTime");
+    const statusEl = document.getElementById("status");
+    const tempEl = document.getElementById("temp");
+    const humiEl = document.getElementById("humi");
+    const lightEl = document.getElementById("light");
+    const soilEl = document.getElementById("soil");
+    const updateTimeEl = document.getElementById("updateTime");
 
-  // 关键：不要把 token 拼到 URL 后面，改成放到 username
-  const client = mqtt.connect("wss://mqtt.flespi.io:443", {
-    username: FLESPI_TOKEN,
-    password: "",
-    clientId: "greenhouse_web_" + Math.random().toString(16).substr(2, 8),
-    clean: true,
-    connectTimeout: 4000,
-    reconnectPeriod: 1000
-  });
+    const client = mqtt.connect("wss://mqtt.flespi.io:443", {
+      username: FLESPI_TOKEN,
+      password: "",
+      clientId: "greenhouse_web_" + Math.random().toString(16).substr(2, 8),
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 1000
+    });
 
-  client.on("connect", function () {
-    console.log("MQTT 连接成功");
-    statusEl.textContent = "已连接";
+    client.on("connect", function () {
+      statusEl.textContent = "已连接";
 
-    client.subscribe(topic, function (err) {
-      if (err) {
-        console.error("订阅失败：", err);
-      } else {
-        console.log("订阅成功：", topic);
+      client.subscribe(topic, function (err) {
+        if (err) {
+          console.error("订阅失败：", err);
+          statusEl.textContent = "订阅失败";
+        }
+      });
+    });
+
+    client.on("reconnect", function () {
+      statusEl.textContent = "重连中";
+    });
+
+    client.on("error", function (err) {
+      console.error("MQTT 连接错误：", err);
+      statusEl.textContent = "连接失败";
+    });
+
+    client.on("message", function (recvTopic, message) {
+      const raw = message.toString();
+
+      try {
+        const data = JSON.parse(raw);
+
+        tempEl.textContent = data.temp ?? "--";
+        humiEl.textContent = data.humi ?? "--";
+        lightEl.textContent = data.light ?? "--";
+        soilEl.textContent = data.soil ?? "--";
+        updateTimeEl.textContent = new Date().toLocaleString();
+      } catch (e) {
+        console.error("JSON 解析失败：", e, raw);
+        statusEl.textContent = "数据格式错误";
       }
     });
-  });
-
-  client.on("reconnect", function () {
-    console.log("正在重连...");
-    statusEl.textContent = "重连中";
-  });
-
-  client.on("error", function (err) {
-    console.error("MQTT 连接错误：", err);
-    statusEl.textContent = "连接失败";
-  });
-
-  client.on("message", function (recvTopic, message) {
-    console.log("收到消息：", recvTopic, message.toString());
-
-    try {
-      const data = JSON.parse(message.toString());
-
-      tempEl.textContent = data.temp ?? "--";
-      humiEl.textContent = data.humi ?? "--";
-      lightEl.textContent = data.light ?? "--";
-      soilEl.textContent = data.soil ?? "--";
-      updateTimeEl.textContent = new Date().toLocaleString();
-    } catch (e) {
-      console.error("JSON 解析失败：", e);
-    }
-  });
   </script>
 </body>
 </html>
