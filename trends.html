@@ -74,6 +74,11 @@
       border-radius: 12px;
       font-size: 15px;
       font-weight: 600;
+      transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: var(--green-dark);
     }
 
     .desc {
@@ -232,17 +237,13 @@
       return arr;
     }
 
-    const tempChart = echarts.init(document.getElementById("tempChart"));
-    const lightChart = echarts.init(document.getElementById("lightChart"));
-    const humiChart = echarts.init(document.getElementById("humiChart"));
-    const soilChart = echarts.init(document.getElementById("soilChart"));
-
+    let tempChart, lightChart, humiChart, soilChart;
     let tempData = randomData(5, 20, 30);
     let lightData = randomData(5, 600, 1800);
     let humiData = randomData(12, 35, 70);
     let soilData = randomData(12, 20, 65);
 
-    function buildLineOption(title, xData, yData, color, unit) {
+    function buildLineOption(xData, yData, color, unit) {
       return {
         tooltip: {
           trigger: "axis"
@@ -294,24 +295,45 @@
       const days = getLastFiveDaysLabels();
       const hours = getLastTwelveHoursLabels();
 
-      tempChart.setOption(buildLineOption("温度变化趋势图", days, tempData, "#2f7d32", "℃"));
-      lightChart.setOption(buildLineOption("光照变化趋势图", days, lightData, "#f4a62a", "lx"));
-      humiChart.setOption(buildLineOption("湿度变化趋势图", hours, humiData, "#2b8cc4", "%"));
-      soilChart.setOption(buildLineOption("土壤湿度变化趋势图", hours, soilData, "#8c6a4a", "%"));
+      tempChart.setOption(buildLineOption(days, tempData, "#2f7d32", "℃"));
+      lightChart.setOption(buildLineOption(days, lightData, "#f4a62a", "lx"));
+      humiChart.setOption(buildLineOption(hours, humiData, "#2b8cc4", "%"));
+      soilChart.setOption(buildLineOption(hours, soilData, "#8c6a4a", "%"));
     }
 
-    renderCharts();
+    function initCharts() {
+      tempChart = echarts.init(document.getElementById("tempChart"));
+      lightChart = echarts.init(document.getElementById("lightChart"));
+      humiChart = echarts.init(document.getElementById("humiChart"));
+      soilChart = echarts.init(document.getElementById("soilChart"));
 
-    // 每分钟检查一次横坐标是否需要更新
-    setInterval(() => {
       renderCharts();
+
+      setTimeout(() => {
+        tempChart.resize();
+        lightChart.resize();
+        humiChart.resize();
+        soilChart.resize();
+      }, 300);
+    }
+
+    window.addEventListener("load", function () {
+      setTimeout(() => {
+        initCharts();
+      }, 500);
+    });
+
+    setInterval(() => {
+      if (tempChart && lightChart && humiChart && soilChart) {
+        renderCharts();
+      }
     }, 60000);
 
     window.addEventListener("resize", function () {
-      tempChart.resize();
-      lightChart.resize();
-      humiChart.resize();
-      soilChart.resize();
+      if (tempChart) tempChart.resize();
+      if (lightChart) lightChart.resize();
+      if (humiChart) humiChart.resize();
+      if (soilChart) soilChart.resize();
     });
   </script>
 </body>
