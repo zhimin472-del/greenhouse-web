@@ -15,8 +15,6 @@
       --text-sub: #667085;
       --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       --card-radius: 22px;
-      --warn-bg: #fff4e5;
-      --warn-border: #f0ad4e;
       --danger-bg: #fff1f0;
       --danger-border: #e74c3c;
     }
@@ -119,6 +117,7 @@
       color: #4f5f53;
       font-size: 16px;
       line-height: 1.8;
+      word-break: break-word;
     }
 
     .warn-panel {
@@ -461,6 +460,8 @@
 
   <script>
     const topic = "messages/greenhouse";
+
+    // 替换成你的有效 token
     const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
 
     const statusEl = document.getElementById("status");
@@ -510,6 +511,7 @@
 
     function renderRecommendationInfo() {
       const rec = loadRecommendation();
+
       if (!rec || !rec.recommendation) {
         recommendInfoEl.innerHTML = "暂未设置推荐参数。请先进入“生长参数推荐”页面，获取天气并选择作物。";
         return null;
@@ -590,10 +592,17 @@
 
     function runAlertCheck(currentData) {
       const rec = renderRecommendationInfo();
+
+      // 没有推荐参数：只显示实时值，不比较，不告警
       if (!rec || !rec.recommendation) {
         warnPanelEl.classList.remove("show");
         warnListEl.innerHTML = "";
-        Object.keys(paramConfig).forEach(resetParamStyle);
+
+        Object.keys(paramConfig).forEach(key => {
+          resetParamStyle(key);
+          alertState[key] = "normal";
+        });
+
         return;
       }
 
@@ -658,12 +667,14 @@
           soil: Number(data.soil ?? 0)
         };
 
+        // 首页实时数据显示，始终独立存在
         tempEl.textContent = data.temp ?? "--";
         humiEl.textContent = data.humi ?? "--";
         lightEl.textContent = data.light ?? "--";
         soilEl.textContent = data.soil ?? "--";
         updateTimeEl.textContent = new Date().toLocaleString();
 
+        // 只有存在推荐参数时，才进行比较告警
         runAlertCheck(currentData);
       } catch (e) {
         statusEl.textContent = "数据格式错误";
