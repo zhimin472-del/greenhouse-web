@@ -67,6 +67,10 @@
     .retry-btn {
       background: #4d8f55;
     }
+    .retry-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
     .panel {
       padding: 22px 24px;
       margin-bottom: 22px;
@@ -94,6 +98,7 @@
       border: 1px solid #cfd8d2;
       font-size: 16px;
       background: #fff;
+      min-width: 220px;
     }
     .season-box {
       color: #256a29;
@@ -160,6 +165,7 @@
       .grid { grid-template-columns: 1fr; }
       .title { font-size: 18px; }
       .value { font-size: 24px; }
+      select { min-width: 180px; width: 100%; }
     }
   </style>
 </head>
@@ -288,6 +294,17 @@
     const season = getSeason();
     seasonText.textContent = season;
 
+    function buildSeasonBlock(temp, humi, light, soil) {
+      return {
+        sunny:   { temp, humi, light, soil },
+        cloudy:  { temp, humi, light, soil },
+        overcast:{ temp, humi, light, soil },
+        rainy:   { temp, humi, light, soil },
+        hot:     { temp, humi, light, soil },
+        cold:    { temp, humi, light, soil }
+      };
+    }
+
     const recommendationData = {
       tomato: {
         "春季": {
@@ -395,423 +412,87 @@
       },
 
       lettuce: {
-        "春季": {
-          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "15~18 ℃", humi: "60%~70%", light: "350~550 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "夏季": {
-          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "17~22 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "16~21 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "15~20 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "16~20 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "秋季": {
-          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "15~18 ℃", humi: "60%~70%", light: "350~550 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "冬季": {
-          sunny:   { temp: "12~18 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "10~16 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "60%~75%" },
-          overcast:{ temp: "10~15 ℃", humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
-          rainy:   { temp: "8~14 ℃",  humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
-          hot:     { temp: "12~16 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~65%" },
-          cold:    { temp: "8~12 ℃",  humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" }
-        }
+        "春季": buildSeasonBlock("15~22 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "夏季": buildSeasonBlock("18~24 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "秋季": buildSeasonBlock("15~22 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "冬季": buildSeasonBlock("12~18 ℃", "60%~75%", "400~700 lx", "55%~70%")
       },
 
       strawberry: {
-        "春季": {
-          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "16~22 ℃", humi: "65%~80%", light: "450~700 lx",  soil: "55%~70%" },
-          overcast:{ temp: "15~21 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          rainy:   { temp: "14~20 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "60%~75%" },
-          hot:     { temp: "17~21 ℃", humi: "60%~70%", light: "450~650 lx",  soil: "50%~65%" },
-          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" }
-        },
-        "夏季": {
-          sunny:   { temp: "20~26 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "19~24 ℃", humi: "65%~80%", light: "450~700 lx",  soil: "55%~70%" },
-          overcast:{ temp: "18~23 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          rainy:   { temp: "17~22 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "60%~75%" },
-          hot:     { temp: "18~22 ℃", humi: "60%~70%", light: "450~650 lx",  soil: "50%~65%" },
-          cold:    { temp: "16~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" }
-        },
-        "秋季": {
-          sunny:   { temp: "16~22 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "15~20 ℃", humi: "65%~80%", light: "450~700 lx",  soil: "55%~70%" },
-          overcast:{ temp: "14~19 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          rainy:   { temp: "13~18 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "60%~75%" },
-          hot:     { temp: "15~19 ℃", humi: "60%~70%", light: "450~650 lx",  soil: "50%~65%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" }
-        },
-        "冬季": {
-          sunny:   { temp: "12~18 ℃", humi: "55%~70%", light: "500~800 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "10~16 ℃", humi: "60%~75%", light: "300~600 lx",  soil: "55%~70%" },
-          overcast:{ temp: "10~15 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "55%~70%" },
-          rainy:   { temp: "8~14 ℃",  humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
-          hot:     { temp: "12~16 ℃", humi: "55%~65%", light: "350~550 lx",  soil: "50%~60%" },
-          cold:    { temp: "8~12 ℃",  humi: "60%~75%", light: "200~400 lx",  soil: "55%~70%" }
-        }
+        "春季": buildSeasonBlock("18~24 ℃", "60%~75%", "600~900 lx", "55%~70%"),
+        "夏季": buildSeasonBlock("20~26 ℃", "60%~75%", "600~900 lx", "55%~70%"),
+        "秋季": buildSeasonBlock("16~22 ℃", "60%~75%", "600~900 lx", "55%~70%"),
+        "冬季": buildSeasonBlock("12~18 ℃", "55%~70%", "500~800 lx", "50%~65%")
       },
 
       eggplant: {
-        "春季": {
-          sunny:   { temp: "20~28 ℃", humi: "60%~75%", light: "700~1000 lx", soil: "55%~70%" },
-          cloudy:  { temp: "18~25 ℃", humi: "65%~80%", light: "500~800 lx",  soil: "55%~70%" },
-          overcast:{ temp: "17~24 ℃", humi: "65%~80%", light: "400~700 lx",  soil: "60%~75%" },
-          rainy:   { temp: "16~22 ℃", humi: "70%~85%", light: "300~500 lx",  soil: "60%~75%" },
-          hot:     { temp: "20~24 ℃", humi: "60%~70%", light: "500~700 lx",  soil: "50%~65%" },
-          cold:    { temp: "16~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "55%~70%" }
-        },
-        "夏季": {
-          sunny:   { temp: "24~30 ℃", humi: "60%~75%", light: "800~1200 lx", soil: "55%~70%" },
-          cloudy:  { temp: "23~28 ℃", humi: "65%~80%", light: "600~900 lx",  soil: "55%~70%" },
-          overcast:{ temp: "22~27 ℃", humi: "65%~80%", light: "450~750 lx",  soil: "60%~75%" },
-          rainy:   { temp: "21~26 ℃", humi: "70%~85%", light: "300~500 lx",  soil: "60%~75%" },
-          hot:     { temp: "22~26 ℃", humi: "60%~70%", light: "500~700 lx",  soil: "50%~65%" },
-          cold:    { temp: "19~23 ℃", humi: "65%~80%", light: "400~650 lx",  soil: "55%~70%" }
-        },
-        "秋季": {
-          sunny:   { temp: "18~26 ℃", humi: "60%~75%", light: "700~1000 lx", soil: "55%~70%" },
-          cloudy:  { temp: "17~23 ℃", humi: "65%~80%", light: "500~800 lx",  soil: "55%~70%" },
-          overcast:{ temp: "16~22 ℃", humi: "65%~80%", light: "400~700 lx",  soil: "60%~75%" },
-          rainy:   { temp: "15~20 ℃", humi: "70%~85%", light: "300~500 lx",  soil: "60%~75%" },
-          hot:     { temp: "18~22 ℃", humi: "60%~70%", light: "500~700 lx",  soil: "50%~65%" },
-          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "55%~70%" }
-        },
-        "冬季": {
-          sunny:   { temp: "16~22 ℃", humi: "55%~70%", light: "500~800 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "14~20 ℃", humi: "60%~75%", light: "300~600 lx",  soil: "55%~70%" },
-          overcast:{ temp: "13~18 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "55%~70%" },
-          rainy:   { temp: "12~17 ℃", humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
-          hot:     { temp: "15~19 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "50%~60%" },
-          cold:    { temp: "12~16 ℃", humi: "60%~75%", light: "250~450 lx",  soil: "55%~70%" }
-        }
+        "春季": buildSeasonBlock("20~28 ℃", "60%~75%", "700~1000 lx", "55%~70%"),
+        "夏季": buildSeasonBlock("24~30 ℃", "60%~75%", "800~1200 lx", "55%~70%"),
+        "秋季": buildSeasonBlock("18~26 ℃", "60%~75%", "700~1000 lx", "55%~70%"),
+        "冬季": buildSeasonBlock("16~22 ℃", "55%~70%", "500~800 lx", "50%~65%")
       },
 
       chinese_cabbage: {
-        "春季": {
-          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "夏季": {
-          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "17~22 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "16~21 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "15~20 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "16~20 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "秋季": {
-          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "冬季": {
-          sunny:   { temp: "10~18 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "8~16 ℃",  humi: "65%~80%", light: "250~500 lx",  soil: "60%~75%" },
-          overcast:{ temp: "8~15 ℃",  humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
-          rainy:   { temp: "6~14 ℃",  humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
-          hot:     { temp: "10~16 ℃", humi: "60%~70%", light: "250~450 lx",  soil: "55%~65%" },
-          cold:    { temp: "6~12 ℃",  humi: "65%~80%", light: "200~350 lx",  soil: "60%~75%" }
-        }
+        "春季": buildSeasonBlock("15~22 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "夏季": buildSeasonBlock("18~24 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "秋季": buildSeasonBlock("15~22 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "冬季": buildSeasonBlock("10~18 ℃", "60%~75%", "400~700 lx", "55%~70%")
       },
 
       celery: {
-        "春季": {
-          sunny:   { temp: "15~22 ℃", humi: "65%~80%", light: "450~750 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "70%~85%", light: "300~550 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "75%~90%", light: "180~350 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "65%~75%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "70%~85%", light: "220~400 lx",  soil: "60%~75%" }
-        },
-        "夏季": {
-          sunny:   { temp: "18~24 ℃", humi: "65%~80%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "17~22 ℃", humi: "70%~85%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "16~21 ℃", humi: "70%~85%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "15~20 ℃", humi: "75%~90%", light: "180~350 lx",  soil: "65%~80%" },
-          hot:     { temp: "16~20 ℃", humi: "65%~75%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "14~18 ℃", humi: "70%~85%", light: "220~400 lx",  soil: "60%~75%" }
-        },
-        "秋季": {
-          sunny:   { temp: "15~22 ℃", humi: "65%~80%", light: "450~750 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "70%~85%", light: "300~550 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "75%~90%", light: "180~350 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "65%~75%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "70%~85%", light: "220~400 lx",  soil: "60%~75%" }
-        },
-        "冬季": {
-          sunny:   { temp: "10~18 ℃", humi: "65%~80%", light: "350~650 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "8~16 ℃",  humi: "70%~85%", light: "220~450 lx",  soil: "60%~75%" },
-          overcast:{ temp: "8~15 ℃",  humi: "70%~85%", light: "180~350 lx",  soil: "60%~75%" },
-          rainy:   { temp: "6~14 ℃",  humi: "75%~90%", light: "120~250 lx",  soil: "65%~80%" },
-          hot:     { temp: "10~16 ℃", humi: "65%~75%", light: "250~450 lx",  soil: "55%~65%" },
-          cold:    { temp: "6~12 ℃",  humi: "70%~85%", light: "150~300 lx",  soil: "60%~75%" }
-        }
+        "春季": buildSeasonBlock("15~22 ℃", "65%~80%", "450~750 lx", "60%~75%"),
+        "夏季": buildSeasonBlock("18~24 ℃", "65%~80%", "500~800 lx", "60%~75%"),
+        "秋季": buildSeasonBlock("15~22 ℃", "65%~80%", "450~750 lx", "60%~75%"),
+        "冬季": buildSeasonBlock("10~18 ℃", "65%~80%", "350~650 lx", "55%~70%")
       },
 
       spinach: {
-        "春季": {
-          sunny:   { temp: "14~20 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "12~18 ℃", humi: "65%~80%", light: "300~550 lx",  soil: "60%~75%" },
-          overcast:{ temp: "11~17 ℃", humi: "65%~80%", light: "220~450 lx",  soil: "65%~80%" },
-          rainy:   { temp: "10~16 ℃", humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
-          hot:     { temp: "12~16 ℃", humi: "60%~70%", light: "250~450 lx",  soil: "55%~70%" },
-          cold:    { temp: "10~14 ℃", humi: "65%~80%", light: "180~350 lx",  soil: "60%~75%" }
-        },
-        "夏季": {
-          sunny:   { temp: "16~22 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "300~550 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "220~450 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "60%~70%", light: "250~450 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "180~350 lx",  soil: "60%~75%" }
-        },
-        "秋季": {
-          sunny:   { temp: "14~20 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "12~18 ℃", humi: "65%~80%", light: "300~550 lx",  soil: "60%~75%" },
-          overcast:{ temp: "11~17 ℃", humi: "65%~80%", light: "220~450 lx",  soil: "65%~80%" },
-          rainy:   { temp: "10~16 ℃", humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
-          hot:     { temp: "12~16 ℃", humi: "60%~70%", light: "250~450 lx",  soil: "55%~70%" },
-          cold:    { temp: "10~14 ℃", humi: "65%~80%", light: "180~350 lx",  soil: "60%~75%" }
-        },
-        "冬季": {
-          sunny:   { temp: "8~16 ℃",  humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "6~14 ℃",  humi: "65%~80%", light: "220~450 lx",  soil: "60%~75%" },
-          overcast:{ temp: "6~12 ℃",  humi: "65%~80%", light: "180~350 lx",  soil: "60%~75%" },
-          rainy:   { temp: "5~10 ℃",  humi: "70%~85%", light: "120~250 lx",  soil: "65%~80%" },
-          hot:     { temp: "8~14 ℃",  humi: "60%~70%", light: "220~400 lx",  soil: "55%~65%" },
-          cold:    { temp: "4~8 ℃",   humi: "65%~80%", light: "120~220 lx",  soil: "60%~75%" }
-        }
+        "春季": buildSeasonBlock("14~20 ℃", "60%~75%", "450~700 lx", "60%~75%"),
+        "夏季": buildSeasonBlock("16~22 ℃", "60%~75%", "450~700 lx", "60%~75%"),
+        "秋季": buildSeasonBlock("14~20 ℃", "60%~75%", "450~700 lx", "60%~75%"),
+        "冬季": buildSeasonBlock("8~16 ℃", "60%~75%", "350~600 lx", "55%~70%")
       },
 
       carrot: {
-        "春季": {
-          sunny:   { temp: "16~22 ℃", humi: "55%~70%", light: "600~900 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "14~20 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "50%~65%" },
-          overcast:{ temp: "13~19 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          rainy:   { temp: "12~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "14~18 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "45%~60%" },
-          cold:    { temp: "12~16 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "50%~65%" }
-        },
-        "夏季": {
-          sunny:   { temp: "18~24 ℃", humi: "55%~70%", light: "650~950 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "16~22 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "50%~65%" },
-          overcast:{ temp: "15~21 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          rainy:   { temp: "14~20 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "16~20 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "45%~60%" },
-          cold:    { temp: "14~18 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "50%~65%" }
-        },
-        "秋季": {
-          sunny:   { temp: "16~22 ℃", humi: "55%~70%", light: "600~900 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "14~20 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "50%~65%" },
-          overcast:{ temp: "13~19 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          rainy:   { temp: "12~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "14~18 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "45%~60%" },
-          cold:    { temp: "12~16 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "50%~65%" }
-        },
-        "冬季": {
-          sunny:   { temp: "10~18 ℃", humi: "50%~65%", light: "450~750 lx",  soil: "45%~60%" },
-          cloudy:  { temp: "8~16 ℃",  humi: "55%~70%", light: "250~500 lx",  soil: "50%~65%" },
-          overcast:{ temp: "8~14 ℃",  humi: "55%~70%", light: "200~400 lx",  soil: "50%~65%" },
-          rainy:   { temp: "6~12 ℃",  humi: "60%~75%", light: "150~300 lx",  soil: "55%~70%" },
-          hot:     { temp: "10~16 ℃", humi: "50%~60%", light: "250~500 lx",  soil: "45%~55%" },
-          cold:    { temp: "6~10 ℃",  humi: "55%~70%", light: "150~300 lx",  soil: "50%~65%" }
-        }
+        "春季": buildSeasonBlock("16~22 ℃", "55%~70%", "600~900 lx", "50%~65%"),
+        "夏季": buildSeasonBlock("18~24 ℃", "55%~70%", "650~950 lx", "50%~65%"),
+        "秋季": buildSeasonBlock("16~22 ℃", "55%~70%", "600~900 lx", "50%~65%"),
+        "冬季": buildSeasonBlock("10~18 ℃", "50%~65%", "450~750 lx", "45%~60%")
       },
 
       bean: {
-        "春季": {
-          sunny:   { temp: "20~28 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "55%~70%" },
-          cloudy:  { temp: "18~25 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "55%~70%" },
-          overcast:{ temp: "17~24 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "60%~75%" },
-          rainy:   { temp: "16~22 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "60%~75%" },
-          hot:     { temp: "20~24 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "50%~65%" },
-          cold:    { temp: "16~20 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" }
-        },
-        "夏季": {
-          sunny:   { temp: "24~30 ℃", humi: "55%~70%", light: "800~1200 lx", soil: "55%~70%" },
-          cloudy:  { temp: "23~28 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
-          overcast:{ temp: "22~27 ℃", humi: "60%~75%", light: "450~750 lx",  soil: "60%~75%" },
-          rainy:   { temp: "21~26 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "60%~75%" },
-          hot:     { temp: "22~26 ℃", humi: "55%~65%", light: "500~700 lx",  soil: "50%~60%" },
-          cold:    { temp: "19~23 ℃", humi: "60%~75%", light: "400~650 lx",  soil: "55%~70%" }
-        },
-        "秋季": {
-          sunny:   { temp: "18~26 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "55%~70%" },
-          cloudy:  { temp: "17~23 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "55%~70%" },
-          overcast:{ temp: "16~22 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "60%~75%" },
-          rainy:   { temp: "15~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "60%~75%" },
-          hot:     { temp: "18~22 ℃", humi: "55%~65%", light: "500~700 lx",  soil: "50%~65%" },
-          cold:    { temp: "14~18 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" }
-        },
-        "冬季": {
-          sunny:   { temp: "16~22 ℃", humi: "50%~65%", light: "500~800 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "14~20 ℃", humi: "55%~70%", light: "300~600 lx",  soil: "55%~70%" },
-          overcast:{ temp: "13~18 ℃", humi: "55%~70%", light: "250~500 lx",  soil: "55%~70%" },
-          rainy:   { temp: "12~17 ℃", humi: "60%~75%", light: "200~400 lx",  soil: "60%~75%" },
-          hot:     { temp: "15~19 ℃", humi: "50%~60%", light: "400~650 lx",  soil: "50%~60%" },
-          cold:    { temp: "12~16 ℃", humi: "55%~70%", light: "250~450 lx",  soil: "55%~70%" }
-        }
+        "春季": buildSeasonBlock("20~28 ℃", "55%~70%", "700~1000 lx", "55%~70%"),
+        "夏季": buildSeasonBlock("24~30 ℃", "55%~70%", "800~1200 lx", "55%~70%"),
+        "秋季": buildSeasonBlock("18~26 ℃", "55%~70%", "700~1000 lx", "55%~70%"),
+        "冬季": buildSeasonBlock("16~22 ℃", "50%~65%", "500~800 lx", "50%~65%")
       },
 
       watermelon: {
-        "春季": {
-          sunny:   { temp: "24~30 ℃", humi: "55%~70%", light: "800~1200 lx", soil: "50%~65%" },
-          cloudy:  { temp: "22~28 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "50%~65%" },
-          overcast:{ temp: "20~26 ℃", humi: "60%~75%", light: "450~750 lx",  soil: "55%~70%" },
-          rainy:   { temp: "18~24 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
-          hot:     { temp: "24~28 ℃", humi: "55%~65%", light: "600~900 lx",  soil: "45%~60%" },
-          cold:    { temp: "18~22 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "50%~65%" }
-        },
-        "夏季": {
-          sunny:   { temp: "26~32 ℃", humi: "55%~70%", light: "900~1300 lx", soil: "50%~65%" },
-          cloudy:  { temp: "24~30 ℃", humi: "60%~75%", light: "650~950 lx",  soil: "50%~65%" },
-          overcast:{ temp: "22~28 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "55%~70%" },
-          rainy:   { temp: "20~26 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
-          hot:     { temp: "24~28 ℃", humi: "55%~65%", light: "600~900 lx",  soil: "45%~60%" },
-          cold:    { temp: "20~24 ℃", humi: "60%~75%", light: "400~650 lx",  soil: "50%~65%" }
-        },
-        "秋季": {
-          sunny:   { temp: "22~28 ℃", humi: "55%~70%", light: "750~1100 lx", soil: "50%~65%" },
-          cloudy:  { temp: "20~26 ℃", humi: "60%~75%", light: "550~850 lx",  soil: "50%~65%" },
-          overcast:{ temp: "18~24 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
-          rainy:   { temp: "16~22 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "22~26 ℃", humi: "55%~65%", light: "550~850 lx",  soil: "45%~60%" },
-          cold:    { temp: "16~20 ℃", humi: "60%~75%", light: "300~550 lx",  soil: "50%~65%" }
-        },
-        "冬季": {
-          sunny:   { temp: "20~26 ℃", humi: "50%~65%", light: "600~900 lx",  soil: "45%~60%" },
-          cloudy:  { temp: "18~24 ℃", humi: "55%~70%", light: "350~650 lx",  soil: "50%~65%" },
-          overcast:{ temp: "16~22 ℃", humi: "55%~70%", light: "250~500 lx",  soil: "50%~65%" },
-          rainy:   { temp: "14~20 ℃", humi: "60%~75%", light: "200~400 lx",  soil: "55%~70%" },
-          hot:     { temp: "20~24 ℃", humi: "50%~60%", light: "450~700 lx",  soil: "45%~55%" },
-          cold:    { temp: "14~18 ℃", humi: "55%~70%", light: "250~450 lx",  soil: "50%~65%" }
-        }
+        "春季": buildSeasonBlock("24~30 ℃", "55%~70%", "800~1200 lx", "50%~65%"),
+        "夏季": buildSeasonBlock("26~32 ℃", "55%~70%", "900~1300 lx", "50%~65%"),
+        "秋季": buildSeasonBlock("22~28 ℃", "55%~70%", "750~1100 lx", "50%~65%"),
+        "冬季": buildSeasonBlock("20~26 ℃", "50%~65%", "600~900 lx", "45%~60%")
       },
 
       grape: {
-        "春季": {
-          sunny:   { temp: "18~26 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "50%~65%" },
-          cloudy:  { temp: "16~23 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "50%~65%" },
-          overcast:{ temp: "15~22 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
-          rainy:   { temp: "14~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
-          hot:     { temp: "18~22 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "45%~60%" },
-          cold:    { temp: "14~18 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "50%~65%" }
-        },
-        "夏季": {
-          sunny:   { temp: "22~30 ℃", humi: "55%~70%", light: "800~1200 lx", soil: "50%~65%" },
-          cloudy:  { temp: "20~27 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "50%~65%" },
-          overcast:{ temp: "19~26 ℃", humi: "60%~75%", light: "450~750 lx",  soil: "55%~70%" },
-          rainy:   { temp: "18~24 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
-          hot:     { temp: "22~26 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "45%~60%" },
-          cold:    { temp: "18~22 ℃", humi: "60%~75%", light: "400~650 lx",  soil: "50%~65%" }
-        },
-        "秋季": {
-          sunny:   { temp: "18~26 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "50%~65%" },
-          cloudy:  { temp: "16~23 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "50%~65%" },
-          overcast:{ temp: "15~22 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
-          rainy:   { temp: "14~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
-          hot:     { temp: "18~22 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "45%~60%" },
-          cold:    { temp: "14~18 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "50%~65%" }
-        },
-        "冬季": {
-          sunny:   { temp: "12~20 ℃", humi: "50%~65%", light: "500~800 lx",  soil: "45%~60%" },
-          cloudy:  { temp: "10~18 ℃", humi: "55%~70%", light: "300~600 lx",  soil: "50%~65%" },
-          overcast:{ temp: "8~16 ℃",  humi: "55%~70%", light: "250~500 lx",  soil: "50%~65%" },
-          rainy:   { temp: "6~14 ℃",  humi: "60%~75%", light: "200~400 lx",  soil: "55%~70%" },
-          hot:     { temp: "12~18 ℃", humi: "50%~60%", light: "350~650 lx",  soil: "45%~55%" },
-          cold:    { temp: "6~12 ℃",  humi: "55%~70%", light: "200~400 lx",  soil: "50%~65%" }
-        }
+        "春季": buildSeasonBlock("18~26 ℃", "55%~70%", "700~1000 lx", "50%~65%"),
+        "夏季": buildSeasonBlock("22~30 ℃", "55%~70%", "800~1200 lx", "50%~65%"),
+        "秋季": buildSeasonBlock("18~26 ℃", "55%~70%", "700~1000 lx", "50%~65%"),
+        "冬季": buildSeasonBlock("12~20 ℃", "50%~65%", "500~800 lx", "45%~60%")
       },
 
       cabbage: {
-        "春季": {
-          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "夏季": {
-          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "17~22 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "16~21 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "15~20 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "16~20 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "秋季": {
-          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
-          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
-          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
-          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
-          hot:     { temp: "14~18 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
-          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
-        },
-        "冬季": {
-          sunny:   { temp: "10~18 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
-          cloudy:  { temp: "8~16 ℃",  humi: "65%~80%", light: "250~500 lx",  soil: "60%~75%" },
-          overcast:{ temp: "8~15 ℃",  humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
-          rainy:   { temp: "6~14 ℃",  humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
-          hot:     { temp: "10~16 ℃", humi: "60%~70%", light: "250~450 lx",  soil: "55%~65%" },
-          cold:    { temp: "6~12 ℃",  humi: "65%~80%", light: "200~350 lx",  soil: "60%~75%" }
-        }
+        "春季": buildSeasonBlock("15~22 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "夏季": buildSeasonBlock("18~24 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "秋季": buildSeasonBlock("15~22 ℃", "60%~75%", "500~800 lx", "60%~75%"),
+        "冬季": buildSeasonBlock("10~18 ℃", "60%~75%", "400~700 lx", "55%~70%")
       },
 
       onion: {
-        "春季": {
-          sunny:   { temp: "16~24 ℃", humi: "55%~70%", light: "600~900 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "14~21 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "50%~65%" },
-          overcast:{ temp: "13~20 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          rainy:   { temp: "12~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "14~18 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "45%~60%" },
-          cold:    { temp: "12~16 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "50%~65%" }
-        },
-        "夏季": {
-          sunny:   { temp: "18~26 ℃", humi: "55%~70%", light: "650~950 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "16~23 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "50%~65%" },
-          overcast:{ temp: "15~22 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          rainy:   { temp: "14~20 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "16~20 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "45%~60%" },
-          cold:    { temp: "14~18 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "50%~65%" }
-        },
-        "秋季": {
-          sunny:   { temp: "16~24 ℃", humi: "55%~70%", light: "600~900 lx",  soil: "50%~65%" },
-          cloudy:  { temp: "14~21 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "50%~65%" },
-          overcast:{ temp: "13~20 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "55%~70%" },
-          rainy:   { temp: "12~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "55%~70%" },
-          hot:     { temp: "14~18 ℃", humi: "55%~65%", light: "400~650 lx",  soil: "45%~60%" },
-          cold:    { temp: "12~16 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "50%~65%" }
-        },
-        "冬季": {
-          sunny:   { temp: "10~18 ℃", humi: "50%~65%", light: "450~750 lx",  soil: "45%~60%" },
-          cloudy:  { temp: "8~16 ℃",  humi: "55%~70%", light: "250~500 lx",  soil: "50%~65%" },
-          overcast:{ temp: "8~14 ℃",  humi: "55%~70%", light: "200~400 lx",  soil: "50%~65%" },
-          rainy:   { temp: "6~12 ℃",  humi: "60%~75%", light: "150~300 lx",  soil: "55%~70%" },
-          hot:     { temp: "10~16 ℃", humi: "50%~60%", light: "250~500 lx",  soil: "45%~55%" },
-          cold:    { temp: "6~10 ℃",  humi: "55%~70%", light: "150~300 lx",  soil: "50%~65%" }
-        }
+        "春季": buildSeasonBlock("16~24 ℃", "55%~70%", "600~900 lx", "50%~65%"),
+        "夏季": buildSeasonBlock("18~26 ℃", "55%~70%", "650~950 lx", "50%~65%"),
+        "秋季": buildSeasonBlock("16~24 ℃", "55%~70%", "600~900 lx", "50%~65%"),
+        "冬季": buildSeasonBlock("10~18 ℃", "50%~65%", "450~750 lx", "45%~60%")
       }
     };
 
@@ -824,13 +505,15 @@
 
     function renderRecommendation() {
       const crop = cropSelect.value;
-
       if (!weatherReady || !currentWeatherType || !crop) {
         clearRecommendation();
         return;
       }
-
-      const rec = recommendationData[crop][season][currentWeatherType];
+      const rec = recommendationData[crop]?.[season]?.[currentWeatherType];
+      if (!rec) {
+        clearRecommendation();
+        return;
+      }
       tempRec.textContent = rec.temp;
       humiRec.textContent = rec.humi;
       lightRec.textContent = rec.light;
@@ -876,40 +559,23 @@
 
     async function reverseGeocode(lat, lon) {
       const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=zh-CN`;
-
-      const res = await fetch(url, {
-        headers: {
-          "Accept": "application/json"
-        }
-      });
-
+      const res = await fetch(url, { headers: { "Accept": "application/json" } });
       if (!res.ok) throw new Error("位置解析失败");
-
       const data = await res.json();
       const addr = data.address || {};
-
       const province = addr.state || "";
       const city = addr.city || addr.town || addr.county || "";
       const district = addr.suburb || addr.city_district || addr.county || "";
       const road = addr.road || addr.neighbourhood || "";
-
       let locationText = [province, city, district, road].filter(Boolean).join("");
-
       if (!locationText) {
         locationText = data.display_name || `纬度 ${lat.toFixed(4)}，经度 ${lon.toFixed(4)}`;
       }
-
       return locationText;
     }
 
     function saveWeatherCache(weatherType, lat, lon, locationText) {
-      const cache = {
-        weatherType,
-        lat,
-        lon,
-        locationText,
-        time: Date.now()
-      };
+      const cache = { weatherType, lat, lon, locationText, time: Date.now() };
       localStorage.setItem("greenhouse_weather_cache", JSON.stringify(cache));
     }
 
@@ -935,14 +601,20 @@
     async function handleAutoWeather(lat, lon) {
       statusText.textContent = "正在获取今日天气与当前位置...";
 
-      const [weatherData, locationText] = await Promise.all([
-        fetchWeather(lat, lon),
-        reverseGeocode(lat, lon)
-      ]);
+      let locationText = `纬度 ${lat.toFixed(4)}，经度 ${lon.toFixed(4)}`;
+      let weatherType = "";
 
+      try {
+        const geoText = await reverseGeocode(lat, lon);
+        if (geoText) locationText = geoText;
+      } catch (e) {
+        console.warn("位置解析失败，改用经纬度显示：", e);
+      }
+
+      const weatherData = await fetchWeather(lat, lon);
       const code = weatherData.daily.weather_code[0];
       const tempMax = weatherData.daily.temperature_2m_max[0];
-      const weatherType = weatherCodeToType(code, tempMax);
+      weatherType = weatherCodeToType(code, tempMax);
 
       currentWeatherType = weatherType;
       weatherReady = true;
@@ -976,11 +648,18 @@
       currentWeatherType = "";
       clearRecommendation();
 
+      statusText.textContent = "正在获取当前位置...";
+      weatherInfo.innerHTML = `
+        当前天气：--<br>
+        当前定位：正在获取...<br>
+        数据来源：自动模式
+      `;
+
       if (!navigator.geolocation) {
         if (cache) {
           useCacheMode(cache);
         } else {
-          enableManualMode("当前浏览器不支持定位，已切换手动模式");
+          enableManualMode("当前浏览器不支持定位，请手动选择天气");
         }
         return;
       }
@@ -988,6 +667,13 @@
       const successHandler = async (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
+
+        weatherInfo.innerHTML = `
+          当前天气：正在获取...<br>
+          当前定位：纬度 ${lat.toFixed(4)}，经度 ${lon.toFixed(4)}<br>
+          数据来源：自动模式
+        `;
+
         try {
           await handleAutoWeather(lat, lon);
         } catch (error) {
@@ -1034,23 +720,23 @@
                 () => {},
                 {
                   enableHighAccuracy: true,
-                  timeout: 15000,
+                  timeout: 20000,
                   maximumAge: 0
                 }
               );
 
-              setTimeout(finishWithError, 12000);
+              setTimeout(finishWithError, 15000);
             },
             {
               enableHighAccuracy: true,
-              timeout: 12000,
+              timeout: 15000,
               maximumAge: 0
             }
           );
         },
         {
           enableHighAccuracy: false,
-          timeout: 5000,
+          timeout: 8000,
           maximumAge: 600000
         }
       );
@@ -1072,8 +758,12 @@
     });
 
     retryBtn.addEventListener("click", function () {
+      retryBtn.disabled = true;
       statusText.textContent = "正在重新获取当前位置...";
       locateFastThenRetry();
+      setTimeout(() => {
+        retryBtn.disabled = false;
+      }, 4000);
     });
 
     clearRecommendation();

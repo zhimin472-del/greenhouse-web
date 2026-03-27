@@ -6,18 +6,14 @@
   <title>环境参数趋势分析</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     :root {
       --green-main: #2f7d32;
       --green-dark: #256a29;
-      --bg-main: #eef3ef;
       --text-main: #2b2b2b;
       --text-sub: #667085;
       --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-      --card-radius: 22px;
     }
 
     body {
@@ -32,13 +28,11 @@
       color: #fff;
       text-align: center;
       padding: 30px 16px 24px;
-      box-shadow: 0 4px 18px rgba(47, 125, 50, 0.25);
     }
 
     .hero h1 {
       margin: 0;
       font-size: 30px;
-      font-weight: 700;
     }
 
     .hero p {
@@ -229,44 +223,118 @@
       return labels;
     }
 
-    function randomData(length, min, max) {
+    function randomIntData(length, min, max) {
       const arr = [];
       for (let i = 0; i < length; i++) {
-        arr.push(Number((Math.random() * (max - min) + min).toFixed(1)));
+        arr.push(Math.round(Math.random() * (max - min) + min));
       }
       return arr;
     }
 
     let tempChart, lightChart, humiChart, soilChart;
-    let tempData = randomData(5, 20, 30);
-    let lightData = randomData(5, 600, 1800);
-    let humiData = randomData(12, 35, 70);
-    let soilData = randomData(12, 20, 65);
 
-    function buildLineOption(xData, yData, color, unit) {
+    let tempData = randomIntData(5, 18, 30);
+    let lightData = randomIntData(5, 600, 1800);
+    let humiData = randomIntData(12, 35, 75);
+    let soilData = randomIntData(12, 20, 70);
+
+    function getYAxisConfig(type) {
+      if (type === "temp") {
+        return {
+          min: 0,
+          max: 40,
+          interval: 5,
+          unit: "℃"
+        };
+      }
+      if (type === "light") {
+        return {
+          min: 0,
+          max: 2000,
+          interval: 500,
+          unit: "lx"
+        };
+      }
+      if (type === "humi") {
+        return {
+          min: 0,
+          max: 100,
+          interval: 20,
+          unit: "%"
+        };
+      }
+      if (type === "soil") {
+        return {
+          min: 0,
+          max: 100,
+          interval: 20,
+          unit: "%"
+        };
+      }
       return {
+        min: 0,
+        max: null,
+        interval: null,
+        unit: ""
+      };
+    }
+
+    function buildLineOption(xData, yData, color, typeName) {
+      const yAxisCfg = getYAxisConfig(typeName);
+
+      return {
+        animation: true,
         tooltip: {
-          trigger: "axis"
+          trigger: "axis",
+          backgroundColor: "rgba(50,50,50,0.88)",
+          borderWidth: 0,
+          textStyle: {
+            color: "#fff"
+          },
+          formatter: function(params) {
+            const item = params[0];
+            return `${item.axisValue}<br/>${item.value} ${yAxisCfg.unit}`;
+          }
         },
         grid: {
-          left: "10%",
+          left: "12%",
           right: "6%",
           top: 30,
-          bottom: 40
+          bottom: 45
         },
         xAxis: {
           type: "category",
           data: xData,
-          axisLine: { lineStyle: { color: "#7b8b7e" } },
-          axisLabel: { color: "#55645a" }
+          boundaryGap: true,
+          axisLine: {
+            lineStyle: { color: "#7b8b7e" }
+          },
+          axisTick: {
+            show: true
+          },
+          axisLabel: {
+            color: "#55645a",
+            fontSize: 12
+          }
         },
         yAxis: {
           type: "value",
+          min: yAxisCfg.min,
+          max: yAxisCfg.max,
+          interval: yAxisCfg.interval,
           axisLine: { show: false },
-          splitLine: { lineStyle: { color: "#e3e9e4" } },
+          axisTick: { show: false },
+          splitLine: {
+            lineStyle: {
+              color: "#e3e9e4"
+            }
+          },
           axisLabel: {
             color: "#55645a",
-            formatter: `{value} ${unit}`
+            fontSize: 12,
+            formatter: function(value) {
+              return value + " " + yAxisCfg.unit;
+            }
           }
         },
         series: [
@@ -277,7 +345,7 @@
             symbol: "circle",
             symbolSize: 8,
             lineStyle: {
-              width: 3,
+              width: 4,
               color: color
             },
             itemStyle: {
@@ -295,10 +363,10 @@
       const days = getLastFiveDaysLabels();
       const hours = getLastTwelveHoursLabels();
 
-      tempChart.setOption(buildLineOption(days, tempData, "#2f7d32", "℃"));
-      lightChart.setOption(buildLineOption(days, lightData, "#f4a62a", "lx"));
-      humiChart.setOption(buildLineOption(hours, humiData, "#2b8cc4", "%"));
-      soilChart.setOption(buildLineOption(hours, soilData, "#8c6a4a", "%"));
+      tempChart.setOption(buildLineOption(days, tempData, "#2f7d32", "temp"), true);
+      lightChart.setOption(buildLineOption(days, lightData, "#f4a62a", "light"), true);
+      humiChart.setOption(buildLineOption(hours, humiData, "#2b8cc4", "humi"), true);
+      soilChart.setOption(buildLineOption(hours, soilData, "#8c6a4a", "soil"), true);
     }
 
     function initCharts() {
@@ -320,7 +388,7 @@
     window.addEventListener("load", function () {
       setTimeout(() => {
         initCharts();
-      }, 500);
+      }, 300);
     });
 
     setInterval(() => {
