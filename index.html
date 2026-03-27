@@ -15,6 +15,10 @@
       --text-sub: #667085;
       --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       --card-radius: 22px;
+      --warn-bg: #fff4e5;
+      --warn-border: #f0ad4e;
+      --danger-bg: #fff1f0;
+      --danger-border: #e74c3c;
     }
 
     body {
@@ -26,7 +30,6 @@
 
     .page {
       min-height: 100vh;
-      position: relative;
       overflow: hidden;
     }
 
@@ -65,7 +68,7 @@
       gap: 18px 28px;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 28px;
+      margin-bottom: 22px;
     }
 
     .status-left {
@@ -97,6 +100,56 @@
       font-weight: 500;
     }
 
+    .recommend-panel {
+      background: rgba(255,255,255,0.96);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 18px 22px;
+      margin-bottom: 22px;
+    }
+
+    .recommend-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #355a3b;
+      margin-bottom: 12px;
+    }
+
+    .recommend-info {
+      color: #4f5f53;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .warn-panel {
+      background: var(--danger-bg);
+      border: 2px solid var(--danger-border);
+      border-radius: 18px;
+      box-shadow: var(--card-shadow);
+      padding: 18px 22px;
+      margin-bottom: 22px;
+      display: none;
+    }
+
+    .warn-panel.show {
+      display: block;
+    }
+
+    .warn-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #c0392b;
+      margin-bottom: 10px;
+    }
+
+    .warn-list {
+      margin: 0;
+      padding-left: 20px;
+      color: #7a2f27;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
     .cards {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -114,6 +167,18 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      transition: 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    .card.alert-low {
+      background: #fff8ef;
+      border-color: #f0ad4e;
+    }
+
+    .card.alert-high {
+      background: #fff1f0;
+      border-color: #e74c3c;
     }
 
     .card-icon {
@@ -143,6 +208,23 @@
       font-size: 28px;
       font-weight: 600;
       color: var(--green-dark);
+    }
+
+    .card-status {
+      margin-top: 14px;
+      font-size: 15px;
+      color: #667085;
+      min-height: 24px;
+    }
+
+    .card-status.low {
+      color: #c97a00;
+      font-weight: 700;
+    }
+
+    .card-status.high {
+      color: #d13b2e;
+      font-weight: 700;
     }
 
     .info-grid {
@@ -224,9 +306,10 @@
         margin: 18px auto 24px;
       }
 
-      .status-panel {
+      .status-panel,
+      .recommend-panel,
+      .warn-panel {
         padding: 16px 16px;
-        gap: 12px;
       }
 
       .status-text {
@@ -244,7 +327,7 @@
       }
 
       .card {
-        min-height: 170px;
+        min-height: 180px;
         padding: 20px 18px;
       }
 
@@ -307,29 +390,45 @@
         <div class="status-right">最近更新时间：<span id="updateTime">--</span></div>
       </section>
 
+      <section class="recommend-panel">
+        <div class="recommend-title">当前生长参数推荐</div>
+        <div class="recommend-info" id="recommendInfo">
+          暂未设置推荐参数。请先进入“生长参数推荐”页面，获取天气并选择作物。
+        </div>
+      </section>
+
+      <section class="warn-panel" id="warnPanel">
+        <div class="warn-title">⚠ 环境参数异常警示</div>
+        <ul class="warn-list" id="warnList"></ul>
+      </section>
+
       <section class="cards">
-        <div class="card">
+        <div class="card" id="tempCard">
           <div class="card-icon">🌡️</div>
           <div class="card-title">温度</div>
           <div class="card-value"><span id="temp">--</span><span class="card-unit">℃</span></div>
+          <div class="card-status" id="tempStatus">状态正常</div>
         </div>
 
-        <div class="card">
+        <div class="card" id="humiCard">
           <div class="card-icon">💧</div>
           <div class="card-title">湿度</div>
           <div class="card-value"><span id="humi">--</span><span class="card-unit">%</span></div>
+          <div class="card-status" id="humiStatus">状态正常</div>
         </div>
 
-        <div class="card">
+        <div class="card" id="lightCard">
           <div class="card-icon">☀️</div>
           <div class="card-title">光照</div>
           <div class="card-value"><span id="light">--</span><span class="card-unit">lx</span></div>
+          <div class="card-status" id="lightStatus">状态正常</div>
         </div>
 
-        <div class="card">
+        <div class="card" id="soilCard">
           <div class="card-icon">🌱</div>
           <div class="card-title">土壤湿度</div>
           <div class="card-value"><span id="soil">--</span><span class="card-unit">%</span></div>
+          <div class="card-status" id="soilStatus">状态正常</div>
         </div>
       </section>
 
@@ -362,9 +461,7 @@
 
   <script>
     const topic = "messages/greenhouse";
-
-    // 替换成你的有效 token
-    const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
+    const FLESPI_TOKEN = "请替换成你的新 token";
 
     const statusEl = document.getElementById("status");
     const tempEl = document.getElementById("temp");
@@ -372,6 +469,155 @@
     const lightEl = document.getElementById("light");
     const soilEl = document.getElementById("soil");
     const updateTimeEl = document.getElementById("updateTime");
+
+    const recommendInfoEl = document.getElementById("recommendInfo");
+    const warnPanelEl = document.getElementById("warnPanel");
+    const warnListEl = document.getElementById("warnList");
+
+    const paramConfig = {
+      temp: { name: "温度", unit: "℃", cardId: "tempCard", statusId: "tempStatus" },
+      humi: { name: "湿度", unit: "%", cardId: "humiCard", statusId: "humiStatus" },
+      light: { name: "光照", unit: "lx", cardId: "lightCard", statusId: "lightStatus" },
+      soil: { name: "土壤湿度", unit: "%", cardId: "soilCard", statusId: "soilStatus" }
+    };
+
+    let alertState = {
+      temp: "normal",
+      humi: "normal",
+      light: "normal",
+      soil: "normal"
+    };
+
+    function parseRange(str) {
+      if (!str || typeof str !== "string") return null;
+      const nums = str.match(/-?\d+(\.\d+)?/g);
+      if (!nums || nums.length < 2) return null;
+      return {
+        min: parseFloat(nums[0]),
+        max: parseFloat(nums[1])
+      };
+    }
+
+    function loadRecommendation() {
+      try {
+        const raw = localStorage.getItem("greenhouse_recommendation");
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function renderRecommendationInfo() {
+      const rec = loadRecommendation();
+      if (!rec || !rec.recommendation) {
+        recommendInfoEl.innerHTML = "暂未设置推荐参数。请先进入“生长参数推荐”页面，获取天气并选择作物。";
+        return null;
+      }
+
+      recommendInfoEl.innerHTML = `
+        当前作物：${rec.cropName}<br>
+        当前季节：${rec.season}　当前天气：${rec.weatherText}<br>
+        推荐温度：${rec.recommendation.temp}　推荐湿度：${rec.recommendation.humi}<br>
+        推荐光照：${rec.recommendation.light}　推荐土壤湿度：${rec.recommendation.soil}<br>
+        推荐参数更新时间：${rec.updateTime}
+      `;
+      return rec;
+    }
+
+    function resetParamStyle(key) {
+      const card = document.getElementById(paramConfig[key].cardId);
+      const status = document.getElementById(paramConfig[key].statusId);
+
+      card.classList.remove("alert-low", "alert-high");
+      status.classList.remove("low", "high");
+      status.textContent = "状态正常";
+    }
+
+    function setParamStyle(key, type, msg) {
+      const card = document.getElementById(paramConfig[key].cardId);
+      const status = document.getElementById(paramConfig[key].statusId);
+
+      card.classList.remove("alert-low", "alert-high");
+      status.classList.remove("low", "high");
+
+      if (type === "low") {
+        card.classList.add("alert-low");
+        status.classList.add("low");
+      } else if (type === "high") {
+        card.classList.add("alert-high");
+        status.classList.add("high");
+      }
+
+      status.textContent = msg;
+    }
+
+    function checkSingleParam(key, currentValue, rangeStr) {
+      const range = parseRange(rangeStr);
+      if (!range || isNaN(currentValue)) {
+        resetParamStyle(key);
+        alertState[key] = "normal";
+        return null;
+      }
+
+      const lowLimit = range.min * 0.8;
+      const highLimit = range.max * 1.2;
+
+      if (currentValue < lowLimit) {
+        const msg = `${paramConfig[key].name}不足！当前值 ${currentValue}${paramConfig[key].unit}，低于推荐范围下限的20%。`;
+        setParamStyle(key, "low", "参数偏低");
+        if (alertState[key] !== "low") {
+          alert(msg);
+        }
+        alertState[key] = "low";
+        return msg;
+      }
+
+      if (currentValue > highLimit) {
+        const msg = `${paramConfig[key].name}过高！当前值 ${currentValue}${paramConfig[key].unit}，高于推荐范围上限的20%。`;
+        setParamStyle(key, "high", "参数偏高");
+        if (alertState[key] !== "high") {
+          alert(msg);
+        }
+        alertState[key] = "high";
+        return msg;
+      }
+
+      resetParamStyle(key);
+      alertState[key] = "normal";
+      return null;
+    }
+
+    function runAlertCheck(currentData) {
+      const rec = renderRecommendationInfo();
+      if (!rec || !rec.recommendation) {
+        warnPanelEl.classList.remove("show");
+        warnListEl.innerHTML = "";
+        Object.keys(paramConfig).forEach(resetParamStyle);
+        return;
+      }
+
+      const warnMessages = [];
+
+      const tempMsg = checkSingleParam("temp", Number(currentData.temp), rec.recommendation.temp);
+      const humiMsg = checkSingleParam("humi", Number(currentData.humi), rec.recommendation.humi);
+      const lightMsg = checkSingleParam("light", Number(currentData.light), rec.recommendation.light);
+      const soilMsg = checkSingleParam("soil", Number(currentData.soil), rec.recommendation.soil);
+
+      [tempMsg, humiMsg, lightMsg, soilMsg].forEach(msg => {
+        if (msg) warnMessages.push(msg);
+      });
+
+      if (warnMessages.length > 0) {
+        warnPanelEl.classList.add("show");
+        warnListEl.innerHTML = warnMessages.map(msg => `<li>${msg}</li>`).join("");
+      } else {
+        warnPanelEl.classList.remove("show");
+        warnListEl.innerHTML = "";
+      }
+    }
+
+    renderRecommendationInfo();
 
     const client = mqtt.connect("wss://mqtt.flespi.io:443", {
       username: FLESPI_TOKEN,
@@ -404,14 +650,30 @@
     client.on("message", function (recvTopic, message) {
       try {
         const data = JSON.parse(message.toString());
+
+        const currentData = {
+          temp: Number(data.temp ?? 0),
+          humi: Number(data.humi ?? 0),
+          light: Number(data.light ?? 0),
+          soil: Number(data.soil ?? 0)
+        };
+
         tempEl.textContent = data.temp ?? "--";
         humiEl.textContent = data.humi ?? "--";
         lightEl.textContent = data.light ?? "--";
         soilEl.textContent = data.soil ?? "--";
         updateTimeEl.textContent = new Date().toLocaleString();
+
+        runAlertCheck(currentData);
       } catch (e) {
         statusEl.textContent = "数据格式错误";
         console.error("JSON 解析失败：", e);
+      }
+    });
+
+    window.addEventListener("storage", function (e) {
+      if (e.key === "greenhouse_recommendation") {
+        renderRecommendationInfo();
       }
     });
   </script>
