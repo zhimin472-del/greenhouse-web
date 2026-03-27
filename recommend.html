@@ -1,0 +1,640 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生长参数推荐</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --green-main: #2f7d32;
+      --green-dark: #256a29;
+      --text-main: #2b2b2b;
+      --text-sub: #667085;
+      --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+      background: linear-gradient(180deg, #f3f6f4 0%, #edf3ef 100%);
+      color: var(--text-main);
+    }
+    .hero {
+      background: linear-gradient(135deg, var(--green-dark), #5fa567);
+      color: #fff;
+      text-align: center;
+      padding: 30px 16px 24px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 30px;
+    }
+    .hero p {
+      margin: 12px 0 0;
+      font-size: 17px;
+      opacity: 0.95;
+    }
+    .wrapper {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 30px;
+    }
+    .top-bar, .panel, .card {
+      background: rgba(255,255,255,0.97);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .top-bar {
+      padding: 16px 20px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .back-btn {
+      display: inline-block;
+      text-decoration: none;
+      color: #fff;
+      background: #2f7d32;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .panel {
+      padding: 22px 24px;
+      margin-bottom: 22px;
+    }
+    .panel h3 {
+      margin: 0 0 16px;
+      color: #355a3b;
+      font-size: 22px;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .label {
+      font-size: 17px;
+      color: #4e5e52;
+      font-weight: 600;
+    }
+    select {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #cfd8d2;
+      font-size: 16px;
+      background: #fff;
+    }
+    .season-box {
+      color: #256a29;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .card {
+      padding: 24px 18px;
+      text-align: center;
+      min-height: 180px;
+    }
+    .icon {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #47604c;
+      margin-bottom: 16px;
+    }
+    .value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #2f7d32;
+      line-height: 1.5;
+    }
+    .desc {
+      margin-top: 24px;
+      text-align: center;
+      color: #5f6e63;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+    .status-box {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #eef7ef;
+      color: #256a29;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .weather-info {
+      color: #4e5e52;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+    .hidden {
+      display: none;
+    }
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 24px; }
+      .hero p { font-size: 15px; }
+      .wrapper { width: calc(100% - 18px); }
+      .grid { grid-template-columns: 1fr; }
+      .title { font-size: 18px; }
+      .value { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>生长参数推荐</h1>
+    <p>根据当前季节、天气和农作物类型推荐适宜的生长参数</p>
+  </header>
+
+  <main class="wrapper">
+    <section class="top-bar">
+      <a class="back-btn" href="index.html">← 返回首页</a>
+      <div class="season-box">当前季节：<span id="seasonText">--</span></div>
+    </section>
+
+    <section class="panel">
+      <h3>天气获取状态</h3>
+      <div class="row">
+        <span class="status-box" id="statusText">正在获取当前位置天气...</span>
+      </div>
+      <div class="weather-info" id="weatherInfo">
+        当前天气：--<br>
+        当前定位：--<br>
+        数据来源：自动模式
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>农作物选择</h3>
+      <div class="row">
+        <span class="label">请选择农作物：</span>
+        <select id="cropSelect">
+          <option value="tomato">番茄</option>
+          <option value="cucumber">黄瓜</option>
+          <option value="pepper">辣椒</option>
+          <option value="lettuce">生菜</option>
+          <option value="strawberry">草莓</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="manualPanel">
+      <h3>手动选择天气（定位失败时使用）</h3>
+      <div class="row">
+        <span class="label">请选择当天天气：</span>
+        <select id="weatherSelect">
+          <option value="sunny">晴天</option>
+          <option value="cloudy">多云</option>
+          <option value="overcast">阴天</option>
+          <option value="rainy">雨天</option>
+          <option value="hot">高温</option>
+          <option value="cold">低温</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <div class="icon">🌡️</div>
+        <div class="title">推荐温度</div>
+        <div class="value" id="tempRec">--</div>
+      </div>
+
+      <div class="card">
+        <div class="icon">💧</div>
+        <div class="title">推荐湿度</div>
+        <div class="value" id="humiRec">--</div>
+      </div>
+
+      <div class="card">
+        <div class="icon">☀️</div>
+        <div class="title">推荐光照</div>
+        <div class="value" id="lightRec">--</div>
+      </div>
+
+      <div class="card">
+        <div class="icon">🌱</div>
+        <div class="title">推荐土壤湿度</div>
+        <div class="value" id="soilRec">--</div>
+      </div>
+    </section>
+
+    <div class="desc">
+      本页面优先自动获取当前位置天气和位置名称；若失败，则优先读取上一次成功结果；若仍不可用，再切换到手动天气模式。<br>
+      推荐参数会根据所选农作物、当前季节与天气条件动态调整。
+    </div>
+  </main>
+
+  <script>
+    const seasonText = document.getElementById("seasonText");
+    const weatherSelect = document.getElementById("weatherSelect");
+    const cropSelect = document.getElementById("cropSelect");
+    const tempRec = document.getElementById("tempRec");
+    const humiRec = document.getElementById("humiRec");
+    const lightRec = document.getElementById("lightRec");
+    const soilRec = document.getElementById("soilRec");
+    const statusText = document.getElementById("statusText");
+    const weatherInfo = document.getElementById("weatherInfo");
+    const manualPanel = document.getElementById("manualPanel");
+
+    let currentWeatherType = "sunny";
+
+    function getSeason() {
+      const month = new Date().getMonth() + 1;
+      if (month >= 3 && month <= 5) return "春季";
+      if (month >= 6 && month <= 8) return "夏季";
+      if (month >= 9 && month <= 11) return "秋季";
+      return "冬季";
+    }
+
+    const season = getSeason();
+    seasonText.textContent = season;
+
+    const recommendationData = {
+      tomato: {
+        "春季": {
+          sunny:   { temp: "20~26 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "55%~70%" },
+          cloudy:  { temp: "18~24 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "55%~70%" },
+          overcast:{ temp: "18~23 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "60%~75%" },
+          rainy:   { temp: "17~22 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "60%~75%" },
+          hot:     { temp: "20~24 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "50%~65%" },
+          cold:    { temp: "18~22 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "55%~70%" }
+        },
+        "夏季": {
+          sunny:   { temp: "24~28 ℃", humi: "55%~70%", light: "800~1200 lx", soil: "55%~70%" },
+          cloudy:  { temp: "23~27 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
+          overcast:{ temp: "22~26 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
+          rainy:   { temp: "21~25 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "65%~80%" },
+          hot:     { temp: "22~25 ℃", humi: "55%~65%", light: "500~700 lx",  soil: "50%~60%" },
+          cold:    { temp: "20~24 ℃", humi: "60%~75%", light: "450~700 lx",  soil: "55%~70%" }
+        },
+        "秋季": {
+          sunny:   { temp: "18~24 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "55%~70%" },
+          cloudy:  { temp: "17~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "55%~70%" },
+          overcast:{ temp: "16~21 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "60%~75%" },
+          rainy:   { temp: "15~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "60%~75%" },
+          hot:     { temp: "18~22 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "50%~65%" },
+          cold:    { temp: "15~19 ℃", humi: "60%~75%", light: "400~650 lx",  soil: "55%~70%" }
+        },
+        "冬季": {
+          sunny:   { temp: "16~22 ℃", humi: "50%~65%", light: "600~900 lx",  soil: "50%~65%" },
+          cloudy:  { temp: "14~20 ℃", humi: "55%~70%", light: "350~650 lx",  soil: "55%~70%" },
+          overcast:{ temp: "13~18 ℃", humi: "55%~70%", light: "250~500 lx",  soil: "55%~70%" },
+          rainy:   { temp: "12~17 ℃", humi: "60%~75%", light: "200~400 lx",  soil: "60%~75%" },
+          hot:     { temp: "16~20 ℃", humi: "50%~60%", light: "450~700 lx",  soil: "50%~60%" },
+          cold:    { temp: "12~16 ℃", humi: "55%~70%", light: "250~500 lx",  soil: "55%~70%" }
+        }
+      },
+
+      cucumber: {
+        "春季": {
+          sunny:   { temp: "22~28 ℃", humi: "65%~80%", light: "600~900 lx",  soil: "60%~75%" },
+          cloudy:  { temp: "20~26 ℃", humi: "70%~85%", light: "450~700 lx",  soil: "60%~75%" },
+          overcast:{ temp: "19~25 ℃", humi: "70%~85%", light: "350~600 lx",  soil: "65%~80%" },
+          rainy:   { temp: "18~23 ℃", humi: "75%~90%", light: "250~450 lx",  soil: "65%~80%" },
+          hot:     { temp: "21~25 ℃", humi: "65%~75%", light: "450~700 lx",  soil: "55%~70%" },
+          cold:    { temp: "18~22 ℃", humi: "70%~85%", light: "350~600 lx",  soil: "60%~75%" }
+        },
+        "夏季": {
+          sunny:   { temp: "24~30 ℃", humi: "65%~80%", light: "700~1000 lx", soil: "60%~75%" },
+          cloudy:  { temp: "23~28 ℃", humi: "70%~85%", light: "500~800 lx",  soil: "60%~75%" },
+          overcast:{ temp: "22~27 ℃", humi: "70%~85%", light: "400~700 lx",  soil: "65%~80%" },
+          rainy:   { temp: "21~26 ℃", humi: "75%~90%", light: "250~450 lx",  soil: "65%~80%" },
+          hot:     { temp: "23~27 ℃", humi: "65%~75%", light: "450~700 lx",  soil: "55%~70%" },
+          cold:    { temp: "20~24 ℃", humi: "70%~85%", light: "400~650 lx",  soil: "60%~75%" }
+        },
+        "秋季": {
+          sunny:   { temp: "20~26 ℃", humi: "65%~80%", light: "600~900 lx",  soil: "60%~75%" },
+          cloudy:  { temp: "18~24 ℃", humi: "70%~85%", light: "450~700 lx",  soil: "60%~75%" },
+          overcast:{ temp: "17~23 ℃", humi: "70%~85%", light: "350~600 lx",  soil: "65%~80%" },
+          rainy:   { temp: "16~21 ℃", humi: "75%~90%", light: "250~450 lx",  soil: "65%~80%" },
+          hot:     { temp: "20~24 ℃", humi: "65%~75%", light: "450~700 lx",  soil: "55%~70%" },
+          cold:    { temp: "16~20 ℃", humi: "70%~85%", light: "350~600 lx",  soil: "60%~75%" }
+        },
+        "冬季": {
+          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "55%~70%" },
+          cloudy:  { temp: "16~22 ℃", humi: "65%~80%", light: "300~600 lx",  soil: "60%~75%" },
+          overcast:{ temp: "15~20 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "60%~75%" },
+          rainy:   { temp: "14~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
+          hot:     { temp: "18~22 ℃", humi: "60%~70%", light: "400~650 lx",  soil: "50%~65%" },
+          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "60%~75%" }
+        }
+      },
+
+      pepper: {
+        "春季": {
+          sunny:   { temp: "20~28 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "50%~65%" },
+          cloudy:  { temp: "18~25 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "50%~65%" },
+          overcast:{ temp: "17~24 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
+          rainy:   { temp: "16~22 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
+          hot:     { temp: "20~25 ℃", humi: "55%~65%", light: "500~800 lx",  soil: "45%~60%" },
+          cold:    { temp: "17~22 ℃", humi: "60%~75%", light: "400~650 lx",  soil: "50%~65%" }
+        },
+        "夏季": {
+          sunny:   { temp: "24~30 ℃", humi: "55%~70%", light: "800~1200 lx", soil: "50%~65%" },
+          cloudy:  { temp: "23~28 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "50%~65%" },
+          overcast:{ temp: "22~27 ℃", humi: "60%~75%", light: "450~750 lx",  soil: "55%~70%" },
+          rainy:   { temp: "21~26 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
+          hot:     { temp: "22~26 ℃", humi: "50%~60%", light: "500~700 lx",  soil: "45%~55%" },
+          cold:    { temp: "20~24 ℃", humi: "60%~75%", light: "400~650 lx",  soil: "50%~65%" }
+        },
+        "秋季": {
+          sunny:   { temp: "18~26 ℃", humi: "55%~70%", light: "700~1000 lx", soil: "50%~65%" },
+          cloudy:  { temp: "17~23 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "50%~65%" },
+          overcast:{ temp: "16~22 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
+          rainy:   { temp: "15~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" },
+          hot:     { temp: "18~22 ℃", humi: "55%~65%", light: "500~700 lx",  soil: "45%~60%" },
+          cold:    { temp: "15~19 ℃", humi: "60%~75%", light: "350~600 lx",  soil: "50%~65%" }
+        },
+        "冬季": {
+          sunny:   { temp: "16~22 ℃", humi: "50%~65%", light: "500~900 lx",  soil: "45%~60%" },
+          cloudy:  { temp: "14~20 ℃", humi: "55%~70%", light: "300~600 lx",  soil: "50%~65%" },
+          overcast:{ temp: "13~18 ℃", humi: "55%~70%", light: "250~500 lx",  soil: "50%~65%" },
+          rainy:   { temp: "12~17 ℃", humi: "60%~75%", light: "200~400 lx",  soil: "55%~70%" },
+          hot:     { temp: "16~20 ℃", humi: "50%~60%", light: "400~650 lx",  soil: "45%~55%" },
+          cold:    { temp: "12~16 ℃", humi: "55%~70%", light: "250~500 lx",  soil: "50%~65%" }
+        }
+      },
+
+      lettuce: {
+        "春季": {
+          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
+          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
+          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
+          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
+          hot:     { temp: "15~18 ℃", humi: "60%~70%", light: "350~550 lx",  soil: "55%~70%" },
+          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
+        },
+        "夏季": {
+          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
+          cloudy:  { temp: "17~22 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
+          overcast:{ temp: "16~21 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
+          rainy:   { temp: "15~20 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
+          hot:     { temp: "16~20 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~70%" },
+          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
+        },
+        "秋季": {
+          sunny:   { temp: "15~22 ℃", humi: "60%~75%", light: "500~800 lx",  soil: "60%~75%" },
+          cloudy:  { temp: "14~20 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
+          overcast:{ temp: "13~19 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "65%~80%" },
+          rainy:   { temp: "12~18 ℃", humi: "70%~85%", light: "200~400 lx",  soil: "65%~80%" },
+          hot:     { temp: "15~18 ℃", humi: "60%~70%", light: "350~550 lx",  soil: "55%~70%" },
+          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "250~450 lx",  soil: "60%~75%" }
+        },
+        "冬季": {
+          sunny:   { temp: "12~18 ℃", humi: "60%~75%", light: "400~700 lx",  soil: "55%~70%" },
+          cloudy:  { temp: "10~16 ℃", humi: "65%~80%", light: "250~500 lx",  soil: "60%~75%" },
+          overcast:{ temp: "10~15 ℃", humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
+          rainy:   { temp: "8~14 ℃",  humi: "70%~85%", light: "150~300 lx",  soil: "65%~80%" },
+          hot:     { temp: "12~16 ℃", humi: "60%~70%", light: "300~500 lx",  soil: "55%~65%" },
+          cold:    { temp: "8~12 ℃",  humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" }
+        }
+      },
+
+      strawberry: {
+        "春季": {
+          sunny:   { temp: "18~24 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
+          cloudy:  { temp: "16~22 ℃", humi: "65%~80%", light: "450~700 lx",  soil: "55%~70%" },
+          overcast:{ temp: "15~21 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
+          rainy:   { temp: "14~20 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "60%~75%" },
+          hot:     { temp: "17~21 ℃", humi: "60%~70%", light: "450~650 lx",  soil: "50%~65%" },
+          cold:    { temp: "14~18 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" }
+        },
+        "夏季": {
+          sunny:   { temp: "20~26 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
+          cloudy:  { temp: "19~24 ℃", humi: "65%~80%", light: "450~700 lx",  soil: "55%~70%" },
+          overcast:{ temp: "18~23 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
+          rainy:   { temp: "17~22 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "60%~75%" },
+          hot:     { temp: "18~22 ℃", humi: "60%~70%", light: "450~650 lx",  soil: "50%~65%" },
+          cold:    { temp: "16~20 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" }
+        },
+        "秋季": {
+          sunny:   { temp: "16~22 ℃", humi: "60%~75%", light: "600~900 lx",  soil: "55%~70%" },
+          cloudy:  { temp: "15~20 ℃", humi: "65%~80%", light: "450~700 lx",  soil: "55%~70%" },
+          overcast:{ temp: "14~19 ℃", humi: "65%~80%", light: "350~600 lx",  soil: "60%~75%" },
+          rainy:   { temp: "13~18 ℃", humi: "70%~85%", light: "250~450 lx",  soil: "60%~75%" },
+          hot:     { temp: "15~19 ℃", humi: "60%~70%", light: "450~650 lx",  soil: "50%~65%" },
+          cold:    { temp: "12~16 ℃", humi: "65%~80%", light: "300~500 lx",  soil: "55%~70%" }
+        },
+        "冬季": {
+          sunny:   { temp: "12~18 ℃", humi: "55%~70%", light: "500~800 lx",  soil: "50%~65%" },
+          cloudy:  { temp: "10~16 ℃", humi: "60%~75%", light: "300~600 lx",  soil: "55%~70%" },
+          overcast:{ temp: "10~15 ℃", humi: "60%~75%", light: "250~500 lx",  soil: "55%~70%" },
+          rainy:   { temp: "8~14 ℃",  humi: "65%~80%", light: "200~400 lx",  soil: "60%~75%" },
+          hot:     { temp: "12~16 ℃", humi: "55%~65%", light: "350~550 lx",  soil: "50%~60%" },
+          cold:    { temp: "8~12 ℃",  humi: "60%~75%", light: "200~400 lx",  soil: "55%~70%" }
+        }
+      }
+    };
+
+    function renderRecommendation() {
+      const crop = cropSelect.value;
+      const rec = recommendationData[crop][season][currentWeatherType];
+      tempRec.textContent = rec.temp;
+      humiRec.textContent = rec.humi;
+      lightRec.textContent = rec.light;
+      soilRec.textContent = rec.soil;
+    }
+
+    function weatherCodeToType(code, tempMax) {
+      if ([61, 63, 65, 80, 81, 82, 51, 53, 55].includes(code)) return "rainy";
+      if ([0].includes(code)) {
+        if (tempMax >= 32) return "hot";
+        if (tempMax <= 10) return "cold";
+        return "sunny";
+      }
+      if ([1, 2].includes(code)) {
+        if (tempMax >= 32) return "hot";
+        if (tempMax <= 10) return "cold";
+        return "cloudy";
+      }
+      if ([3, 45, 48].includes(code)) return "overcast";
+      if (tempMax >= 32) return "hot";
+      if (tempMax <= 10) return "cold";
+      return "cloudy";
+    }
+
+    function weatherTypeText(type) {
+      const map = {
+        sunny: "晴天",
+        cloudy: "多云",
+        overcast: "阴天",
+        rainy: "雨天",
+        hot: "高温",
+        cold: "低温"
+      };
+      return map[type] || "未知";
+    }
+
+    async function fetchWeather(lat, lon) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max&timezone=auto&forecast_days=1`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("天气接口请求失败");
+      return await res.json();
+    }
+
+    async function reverseGeocode(lat, lon) {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=zh-CN`;
+
+      const res = await fetch(url, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
+
+      if (!res.ok) throw new Error("位置解析失败");
+
+      const data = await res.json();
+      const addr = data.address || {};
+
+      const province = addr.state || "";
+      const city = addr.city || addr.town || addr.county || "";
+      const district = addr.suburb || addr.city_district || addr.county || "";
+      const road = addr.road || addr.neighbourhood || "";
+
+      let locationText = [province, city, district, road].filter(Boolean).join("");
+
+      if (!locationText) {
+        locationText = data.display_name || `纬度 ${lat.toFixed(4)}，经度 ${lon.toFixed(4)}`;
+      }
+
+      return locationText;
+    }
+
+    function saveWeatherCache(weatherType, lat, lon, locationText) {
+      const cache = {
+        weatherType,
+        lat,
+        lon,
+        locationText,
+        time: Date.now()
+      };
+      localStorage.setItem("greenhouse_weather_cache", JSON.stringify(cache));
+    }
+
+    function loadWeatherCache() {
+      const cache = localStorage.getItem("greenhouse_weather_cache");
+      if (!cache) return null;
+      try {
+        return JSON.parse(cache);
+      } catch {
+        return null;
+      }
+    }
+
+    function enableManualMode(message) {
+      statusText.textContent = message;
+      weatherInfo.innerHTML = `当前天气：手动选择<br>当前定位：未获取<br>数据来源：手动模式`;
+      manualPanel.classList.remove("hidden");
+      currentWeatherType = weatherSelect.value;
+      renderRecommendation();
+    }
+
+    async function handleAutoWeather(lat, lon) {
+      statusText.textContent = "正在获取今日天气与当前位置...";
+
+      const [weatherData, locationText] = await Promise.all([
+        fetchWeather(lat, lon),
+        reverseGeocode(lat, lon)
+      ]);
+
+      const code = weatherData.daily.weather_code[0];
+      const tempMax = weatherData.daily.temperature_2m_max[0];
+      const weatherType = weatherCodeToType(code, tempMax);
+
+      currentWeatherType = weatherType;
+      saveWeatherCache(weatherType, lat, lon, locationText);
+
+      statusText.textContent = "已自动获取今日天气";
+      weatherInfo.innerHTML = `
+        当前天气：${weatherTypeText(weatherType)}<br>
+        当前定位：${locationText}<br>
+        数据来源：自动定位获取
+      `;
+      renderRecommendation();
+    }
+
+    function useCacheMode(cache) {
+      currentWeatherType = cache.weatherType;
+      statusText.textContent = "自动获取失败，已使用上次天气结果";
+      weatherInfo.innerHTML = `
+        当前天气：${weatherTypeText(cache.weatherType)}<br>
+        当前定位：${cache.locationText || `纬度 ${cache.lat.toFixed(4)}，经度 ${cache.lon.toFixed(4)}`}<br>
+        数据来源：缓存模式
+      `;
+      renderRecommendation();
+    }
+
+    function initAutoLocation() {
+      const cache = loadWeatherCache();
+
+      if (!navigator.geolocation) {
+        if (cache) {
+          useCacheMode(cache);
+        } else {
+          enableManualMode("当前浏览器不支持定位，已切换手动模式");
+        }
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          try {
+            await handleAutoWeather(lat, lon);
+          } catch (error) {
+            console.error(error);
+            if (cache) {
+              useCacheMode(cache);
+            } else {
+              enableManualMode("天气获取失败，已切换手动模式");
+            }
+          }
+        },
+        (error) => {
+          console.error(error);
+          if (cache) {
+            useCacheMode(cache);
+          } else {
+            enableManualMode("定位失败或未授权，已切换手动模式");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 300000
+        }
+      );
+    }
+
+    cropSelect.addEventListener("change", renderRecommendation);
+
+    weatherSelect.addEventListener("change", function () {
+      currentWeatherType = weatherSelect.value;
+      renderRecommendation();
+    });
+
+    initAutoLocation();
+  </script>
+</body>
+</html>

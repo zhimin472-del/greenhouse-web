@@ -6,15 +6,11 @@
   <title>智能大棚环境监测系统</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     :root {
       --green-main: #2f7d32;
       --green-dark: #256a29;
-      --green-light: #e8f4ea;
-      --bg-main: #eef3ef;
       --text-main: #2b2b2b;
       --text-sub: #667085;
       --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -34,30 +30,7 @@
       overflow: hidden;
     }
 
-    .page::before,
-    .page::after {
-      content: "";
-      position: absolute;
-      width: 320px;
-      height: 320px;
-      background: radial-gradient(circle, rgba(75, 145, 84, 0.12) 0%, rgba(75, 145, 84, 0) 70%);
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .page::before {
-      left: -80px;
-      bottom: 40px;
-    }
-
-    .page::after {
-      right: -100px;
-      bottom: 20px;
-    }
-
     .hero {
-      position: relative;
-      z-index: 1;
       background: linear-gradient(135deg, var(--green-dark), #5fa567);
       color: #fff;
       text-align: center;
@@ -69,7 +42,6 @@
       margin: 0;
       font-size: 30px;
       font-weight: 700;
-      letter-spacing: 1px;
     }
 
     .hero p {
@@ -79,8 +51,6 @@
     }
 
     .wrapper {
-      position: relative;
-      z-index: 1;
       width: min(1180px, calc(100% - 32px));
       margin: 26px auto 34px;
     }
@@ -96,7 +66,6 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 28px;
-      backdrop-filter: blur(6px);
     }
 
     .status-left {
@@ -121,11 +90,7 @@
       color: var(--green-dark);
     }
 
-    .status-meta {
-      color: var(--text-sub);
-      font-size: 16px;
-    }
-
+    .status-meta,
     .status-right {
       color: var(--text-sub);
       font-size: 16px;
@@ -145,16 +110,10 @@
       box-shadow: var(--card-shadow);
       padding: 26px 24px 24px;
       text-align: center;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
       min-height: 220px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.10);
     }
 
     .card-icon {
@@ -198,16 +157,26 @@
       border-radius: 20px;
       box-shadow: var(--card-shadow);
       padding: 22px 24px;
-      min-height: 140px;
+      min-height: 180px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .info-link-card {
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+
+    .info-link-card:hover .info-card {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
     }
 
     .info-card h3 {
       margin: 0 0 14px;
       font-size: 22px;
       color: #38583d;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      line-height: 1.4;
     }
 
     .info-card p {
@@ -215,17 +184,6 @@
       font-size: 18px;
       color: #46624b;
       line-height: 1.7;
-    }
-
-    .info-link-card {
-      text-decoration: none;
-      display: block;
-      color: inherit;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    .info-link-card:hover {
-      transform: translateY(-4px);
     }
 
     .arrow {
@@ -242,23 +200,9 @@
       padding: 10px 12px 24px;
     }
 
-    .tag-ok {
-      color: var(--green-main);
-      font-weight: 700;
-    }
-
-    .tag-mid {
-      color: #6f8f73;
-      font-weight: 600;
-    }
-
     @media (max-width: 1100px) {
       .cards {
         grid-template-columns: repeat(2, 1fr);
-      }
-
-      .card {
-        min-height: 200px;
       }
     }
 
@@ -328,6 +272,7 @@
 
       .info-card {
         padding: 18px 18px;
+        min-height: auto;
       }
 
       .info-card h3 {
@@ -389,17 +334,20 @@
       </section>
 
       <section class="info-grid">
-        <div class="info-card">
-          <h3>🟢 系统运行状态</h3>
-          <p><span class="tag-ok">MQTT 通信正常</span></p>
-          <p><span class="tag-mid">环境参数可实时更新显示</span></p>
-        </div>
+        <a class="info-link-card" href="recommend.html">
+          <div class="info-card">
+            <h3>🌾 生长参数推荐</h3>
+            <p>点击进入推荐页面</p>
+            <p>系统将优先自动获取当前位置的今日天气和当前位置名称，并结合当前季节与农作物类型推荐当天适合生长的温度、湿度、光照和土壤湿度参数。</p>
+            <p class="arrow">进入推荐页 →</p>
+          </div>
+        </a>
 
         <a class="info-link-card" href="trends.html">
           <div class="info-card">
             <h3>📈 环境参数趋势分析</h3>
             <p>点击进入历史趋势页面</p>
-            <p>查看温度、湿度、光照和土壤湿度变化曲线</p>
+            <p>查看温度、湿度、光照和土壤湿度变化曲线，支持电脑端和手机端访问展示。</p>
             <p class="arrow">进入分析页 →</p>
           </div>
         </a>
@@ -415,7 +363,7 @@
   <script>
     const topic = "messages/greenhouse";
 
-    // 替换成你的新 token
+    // 替换成你的有效 token
     const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
 
     const statusEl = document.getElementById("status");
@@ -439,7 +387,7 @@
       client.subscribe(topic, function (err) {
         if (err) {
           statusEl.textContent = "订阅失败";
-          console.error(err);
+          console.error("订阅失败：", err);
         }
       });
     });
@@ -450,13 +398,12 @@
 
     client.on("error", function (err) {
       statusEl.textContent = "连接失败";
-      console.error(err);
+      console.error("MQTT 连接错误：", err);
     });
 
     client.on("message", function (recvTopic, message) {
-      const raw = message.toString();
       try {
-        const data = JSON.parse(raw);
+        const data = JSON.parse(message.toString());
         tempEl.textContent = data.temp ?? "--";
         humiEl.textContent = data.humi ?? "--";
         lightEl.textContent = data.light ?? "--";
@@ -464,7 +411,7 @@
         updateTimeEl.textContent = new Date().toLocaleString();
       } catch (e) {
         statusEl.textContent = "数据格式错误";
-        console.error(e);
+        console.error("JSON 解析失败：", e);
       }
     });
   </script>
