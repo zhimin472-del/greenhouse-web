@@ -11,9 +11,11 @@
     :root {
       --green-main: #2f7d32;
       --green-dark: #256a29;
+      --bg-main: #eef3ef;
       --text-main: #2b2b2b;
       --text-sub: #667085;
       --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      --card-radius: 22px;
     }
 
     body {
@@ -28,11 +30,13 @@
       color: #fff;
       text-align: center;
       padding: 30px 16px 24px;
+      box-shadow: 0 4px 18px rgba(47, 125, 50, 0.25);
     }
 
     .hero h1 {
       margin: 0;
       font-size: 30px;
+      font-weight: 700;
     }
 
     .hero p {
@@ -119,7 +123,6 @@
       .chart-grid {
         grid-template-columns: 1fr;
       }
-
       .chart-box {
         height: 290px;
       }
@@ -168,7 +171,7 @@
       <a class="back-btn" href="index.html">← 返回首页</a>
       <div class="desc">
         温度与光照显示最近 5 天数据，湿度与土壤湿度显示最近 12 小时数据。<br>
-        页面会根据当前时间自动更新时间横坐标。
+        页面会根据当前时间自动更新时间横坐标，并读取首页累计保存的历史采集数据。
       </div>
     </section>
 
@@ -195,11 +198,23 @@
     </section>
 
     <div class="note">
-      本页面用于展示智能大棚环境参数历史变化趋势，可通过电脑端和手机浏览器访问。
+      本页面用于展示智能大棚环境参数历史变化趋势。<br>
+      若当前设备尚未在首页接收到实时数据，图表会显示空白或 0 值。
     </div>
   </main>
 
   <script>
+    const STORAGE_KEY = "greenhouse_history";
+    let tempChart, lightChart, humiChart, soilChart;
+
+    function getHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
     function getLastFiveDaysLabels() {
       const labels = [];
       const now = new Date();
@@ -223,118 +238,85 @@
       return labels;
     }
 
-    function randomIntData(length, min, max) {
-      const arr = [];
-      for (let i = 0; i < length; i++) {
-        arr.push(Math.round(Math.random() * (max - min) + min));
-      }
-      return arr;
+    function average(arr) {
+      if (!arr.length) return 0;
+      return Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1));
     }
 
-    let tempChart, lightChart, humiChart, soilChart;
+    function buildDailySeries(history, field) {
+      const labels = getLastFiveDaysLabels();
+      const now = new Date();
 
-    let tempData = randomIntData(5, 18, 30);
-    let lightData = randomIntData(5, 600, 1800);
-    let humiData = randomIntData(12, 35, 75);
-    let soilData = randomIntData(12, 20, 70);
+      const data = labels.map((label, idx) => {
+        const start = new Date(now);
+        start.setHours(0, 0, 0, 0);
+        start.setDate(now.getDate() - (4 - idx));
 
-    function getYAxisConfig(type) {
-      if (type === "temp") {
-        return {
-          min: 0,
-          max: 40,
-          interval: 5,
-          unit: "℃"
-        };
-      }
-      if (type === "light") {
-        return {
-          min: 0,
-          max: 2000,
-          interval: 500,
-          unit: "lx"
-        };
-      }
-      if (type === "humi") {
-        return {
-          min: 0,
-          max: 100,
-          interval: 20,
-          unit: "%"
-        };
-      }
-      if (type === "soil") {
-        return {
-          min: 0,
-          max: 100,
-          interval: 20,
-          unit: "%"
-        };
-      }
-      return {
-        min: 0,
-        max: null,
-        interval: null,
-        unit: ""
-      };
+        const end = new Date(start);
+        end.setDate(start.getDate() + 1);
+
+        const values = history
+          .filter(item => {
+            const t = new Date(item.time).getTime();
+            return t >= start.getTime() && t < end.getTime();
+          })
+          .map(item => Number(item[field] ?? 0));
+
+        return average(values);
+      });
+
+      return { labels, data };
     }
 
-    function buildLineOption(xData, yData, color, typeName) {
-      const yAxisCfg = getYAxisConfig(typeName);
+    function buildHourlySeries(history, field) {
+      const labels = getLastTwelveHoursLabels();
+      const now = new Date();
 
+      const data = labels.map((label, idx) => {
+        const start = new Date(now);
+        start.setMinutes(0, 0, 0);
+        start.setHours(now.getHours() - (11 - idx));
+
+        const end = new Date(start);
+        end.setHours(start.getHours() + 1);
+
+        const values = history
+          .filter(item => {
+            const t = new Date(item.time).getTime();
+            return t >= start.getTime() && t < end.getTime();
+          })
+          .map(item => Number(item[field] ?? 0));
+
+        return average(values);
+      });
+
+      return { labels, data };
+    }
+
+    function buildLineOption(xData, yData, color, unit) {
       return {
-        animation: true,
         tooltip: {
-          trigger: "axis",
-          backgroundColor: "rgba(50,50,50,0.88)",
-          borderWidth: 0,
-          textStyle: {
-            color: "#fff"
-          },
-          formatter: function(params) {
-            const item = params[0];
-            return `${item.axisValue}<br/>${item.value} ${yAxisCfg.unit}`;
-          }
+          trigger: "axis"
         },
         grid: {
-          left: "12%",
+          left: "10%",
           right: "6%",
           top: 30,
-          bottom: 45
+          bottom: 40
         },
         xAxis: {
           type: "category",
           data: xData,
-          boundaryGap: true,
-          axisLine: {
-            lineStyle: { color: "#7b8b7e" }
-          },
-          axisTick: {
-            show: true
-          },
-          axisLabel: {
-            color: "#55645a",
-            fontSize: 12
-          }
+          axisLine: { lineStyle: { color: "#7b8b7e" } },
+          axisLabel: { color: "#55645a" }
         },
         yAxis: {
           type: "value",
-          min: yAxisCfg.min,
-          max: yAxisCfg.max,
-          interval: yAxisCfg.interval,
           axisLine: { show: false },
-          axisTick: { show: false },
-          splitLine: {
-            lineStyle: {
-              color: "#e3e9e4"
-            }
-          },
+          splitLine: { lineStyle: { color: "#e3e9e4" } },
           axisLabel: {
             color: "#55645a",
-            fontSize: 12,
-            formatter: function(value) {
-              return value + " " + yAxisCfg.unit;
-            }
+            formatter: `{value} ${unit}`
           }
         },
         series: [
@@ -345,7 +327,7 @@
             symbol: "circle",
             symbolSize: 8,
             lineStyle: {
-              width: 4,
+              width: 3,
               color: color
             },
             itemStyle: {
@@ -360,13 +342,17 @@
     }
 
     function renderCharts() {
-      const days = getLastFiveDaysLabels();
-      const hours = getLastTwelveHoursLabels();
+      const history = getHistory();
 
-      tempChart.setOption(buildLineOption(days, tempData, "#2f7d32", "temp"), true);
-      lightChart.setOption(buildLineOption(days, lightData, "#f4a62a", "light"), true);
-      humiChart.setOption(buildLineOption(hours, humiData, "#2b8cc4", "humi"), true);
-      soilChart.setOption(buildLineOption(hours, soilData, "#8c6a4a", "soil"), true);
+      const tempSeries = buildDailySeries(history, "temp");
+      const lightSeries = buildDailySeries(history, "light");
+      const humiSeries = buildHourlySeries(history, "humi");
+      const soilSeries = buildHourlySeries(history, "soil");
+
+      tempChart.setOption(buildLineOption(tempSeries.labels, tempSeries.data, "#2f7d32", "℃"));
+      lightChart.setOption(buildLineOption(lightSeries.labels, lightSeries.data, "#f4a62a", "lx"));
+      humiChart.setOption(buildLineOption(humiSeries.labels, humiSeries.data, "#2b8cc4", "%"));
+      soilChart.setOption(buildLineOption(soilSeries.labels, soilSeries.data, "#8c6a4a", "%"));
     }
 
     function initCharts() {
@@ -396,6 +382,12 @@
         renderCharts();
       }
     }, 60000);
+
+    window.addEventListener("storage", function (e) {
+      if (e.key === STORAGE_KEY && tempChart) {
+        renderCharts();
+      }
+    });
 
     window.addEventListener("resize", function () {
       if (tempChart) tempChart.resize();
