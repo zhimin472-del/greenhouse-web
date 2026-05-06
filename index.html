@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>智能大棚环境监测系统</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
   <style>
     * { box-sizing: border-box; }
 
@@ -83,6 +84,16 @@
       background: #48a04d;
       box-shadow: 0 0 0 6px rgba(72, 160, 77, 0.12);
       display: inline-block;
+    }
+
+    .dot.error {
+      background: #e74c3c;
+      box-shadow: 0 0 0 6px rgba(231, 76, 60, 0.12);
+    }
+
+    .dot.warn {
+      background: #f0ad4e;
+      box-shadow: 0 0 0 6px rgba(240, 173, 78, 0.12);
     }
 
     .status-text {
@@ -372,6 +383,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="page">
     <header class="hero">
@@ -382,7 +394,7 @@
     <main class="wrapper">
       <section class="status-panel">
         <div class="status-left">
-          <span class="dot"></span>
+          <span class="dot" id="statusDot"></span>
           <span class="status-text" id="status">未连接</span>
           <span class="status-meta">Topic：messages/greenhouse</span>
         </div>
@@ -406,28 +418,28 @@
           <div class="card-icon">🌡️</div>
           <div class="card-title">温度</div>
           <div class="card-value"><span id="temp">--</span><span class="card-unit">℃</span></div>
-          <div class="card-status" id="tempStatus">状态正常</div>
+          <div class="card-status" id="tempStatus">等待数据</div>
         </div>
 
         <div class="card" id="humiCard">
           <div class="card-icon">💧</div>
           <div class="card-title">湿度</div>
           <div class="card-value"><span id="humi">--</span><span class="card-unit">%</span></div>
-          <div class="card-status" id="humiStatus">状态正常</div>
+          <div class="card-status" id="humiStatus">等待数据</div>
         </div>
 
         <div class="card" id="lightCard">
           <div class="card-icon">☀️</div>
           <div class="card-title">光照</div>
           <div class="card-value"><span id="light">--</span><span class="card-unit">lx</span></div>
-          <div class="card-status" id="lightStatus">状态正常</div>
+          <div class="card-status" id="lightStatus">等待数据</div>
         </div>
 
         <div class="card" id="soilCard">
           <div class="card-icon">🌱</div>
           <div class="card-title">土壤湿度</div>
           <div class="card-value"><span id="soil">--</span><span class="card-unit">%</span></div>
-          <div class="card-status" id="soilStatus">状态正常</div>
+          <div class="card-status" id="soilStatus">等待数据</div>
         </div>
       </section>
 
@@ -462,9 +474,9 @@
     const topic = "messages/greenhouse";
     const STORAGE_KEY = "greenhouse_history";
 
-    // 替换成你的有效 token
     const FLESPI_TOKEN = "w0aXGhaxYJOZqRFva4jit2V4eckdv4QpGDzYq4fz7PU5lidpR2HjM6loktdAN74s";
 
+    const statusDotEl = document.getElementById("statusDot");
     const statusEl = document.getElementById("status");
     const tempEl = document.getElementById("temp");
     const humiEl = document.getElementById("humi");
@@ -490,10 +502,165 @@
       soil: "normal"
     };
 
+    function setConnectionState(type, text) {
+      statusEl.textContent = text;
+      statusDotEl.classList.remove("error", "warn");
+
+      if (type === "error") {
+        statusDotEl.classList.add("error");
+      } else if (type === "warn") {
+        statusDotEl.classList.add("warn");
+      }
+    }
+
+    function toNumberSafe(value) {
+      if (value === undefined || value === null || value === "") return null;
+
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : null;
+      }
+
+      const str = String(value).trim();
+      const match = str.match(/-?\d+(\.\d+)?/);
+
+      if (!match) return null;
+
+      const num = Number(match[0]);
+      return Number.isFinite(num) ? num : null;
+    }
+
+    function pickNumber(data, keys) {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          const value = toNumberSafe(data[key]);
+          if (value !== null) return value;
+        }
+      }
+      return null;
+    }
+
+    /*
+      兼容多种硬件端发送格式：
+      1. {"temp":25,"humi":40,"light":912,"soil":36}
+      2. {"T":25,"H":40,"L":912,"S":36}
+      3. {"temperature":25,"humidity":40,"lux":912,"moisture":36}
+      4. T:25,H:40,L:912,S:36
+    */
+    function parseTextPayload(text) {
+      const result = {};
+      const regex = /([A-Za-z_]+)\s*[:=]\s*(-?\d+(\.\d+)?)/g;
+      let match;
+
+      while ((match = regex.exec(text)) !== null) {
+        result[match[1]] = Number(match[2]);
+      }
+
+      return result;
+    }
+
+    function parsePayload(messageText) {
+      const text = messageText.trim();
+
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return parseTextPayload(text);
+      }
+    }
+
+    function normalizeMqttData(rawData) {
+      return {
+        temp: pickNumber(rawData, [
+          "temp", "Temp", "TEMP",
+          "temperature", "Temperature",
+          "T", "t"
+        ]),
+        humi: pickNumber(rawData, [
+          "humi", "Humi", "HUMI",
+          "humidity", "Humidity",
+          "H", "h"
+        ]),
+        light: pickNumber(rawData, [
+          "light", "Light", "LIGHT",
+          "lux", "Lux", "LUX",
+          "illumination", "Illumination",
+          "L", "l"
+        ]),
+        soil: pickNumber(rawData, [
+          "soil", "Soil", "SOIL",
+          "soil_humi", "soilHumi",
+          "soilHumidity", "SoilHumidity",
+          "soil_moisture", "soilMoisture",
+          "moisture", "Moisture",
+          "S", "s"
+        ])
+      };
+    }
+
+    function formatDisplayValue(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "--";
+      }
+
+      if (Number.isInteger(value)) {
+        return String(value);
+      }
+
+      return value.toFixed(1);
+    }
+
+    function updateDisplay(currentData) {
+      tempEl.textContent = formatDisplayValue(currentData.temp);
+      humiEl.textContent = formatDisplayValue(currentData.humi);
+      lightEl.textContent = formatDisplayValue(currentData.light);
+      soilEl.textContent = formatDisplayValue(currentData.soil);
+      updateTimeEl.textContent = new Date().toLocaleString();
+    }
+
+    function isCompleteData(data) {
+      return (
+        data.temp !== null &&
+        data.humi !== null &&
+        data.light !== null &&
+        data.soil !== null
+      );
+    }
+
+    function saveHistoryRecord(data) {
+      if (!isCompleteData(data)) {
+        console.warn("当前数据不完整，未写入趋势历史数据：", data);
+        return;
+      }
+
+      let history = [];
+
+      try {
+        history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        history = [];
+      }
+
+      history.push({
+        time: new Date().toISOString(),
+        temp: Number(data.temp),
+        humi: Number(data.humi),
+        light: Number(data.light),
+        soil: Number(data.soil)
+      });
+
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      history = history.filter(item => new Date(item.time).getTime() >= sevenDaysAgo);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+
     function parseRange(str) {
       if (!str || typeof str !== "string") return null;
+
       const nums = str.match(/-?\d+(\.\d+)?/g);
+
       if (!nums || nums.length < 2) return null;
+
       return {
         min: parseFloat(nums[0]),
         max: parseFloat(nums[1])
@@ -525,6 +692,7 @@
         推荐光照：${rec.recommendation.light}　推荐土壤湿度：${rec.recommendation.soil}<br>
         推荐参数更新时间：${rec.updateTime}
       `;
+
       return rec;
     }
 
@@ -535,6 +703,15 @@
       card.classList.remove("alert-low", "alert-high");
       status.classList.remove("low", "high");
       status.textContent = "状态正常";
+    }
+
+    function setWaitingStyle(key) {
+      const card = document.getElementById(paramConfig[key].cardId);
+      const status = document.getElementById(paramConfig[key].statusId);
+
+      card.classList.remove("alert-low", "alert-high");
+      status.classList.remove("low", "high");
+      status.textContent = "未收到数据";
     }
 
     function setParamStyle(key, type, msg) {
@@ -556,8 +733,15 @@
     }
 
     function checkSingleParam(key, currentValue, rangeStr) {
+      if (currentValue === null || currentValue === undefined || Number.isNaN(currentValue)) {
+        setWaitingStyle(key);
+        alertState[key] = "normal";
+        return null;
+      }
+
       const range = parseRange(rangeStr);
-      if (!range || isNaN(currentValue)) {
+
+      if (!range || Number.isNaN(currentValue)) {
         resetParamStyle(key);
         alertState[key] = "normal";
         return null;
@@ -569,9 +753,11 @@
       if (currentValue < lowLimit) {
         const msg = `${paramConfig[key].name}不足！当前值 ${currentValue}${paramConfig[key].unit}，低于推荐范围下限的20%。`;
         setParamStyle(key, "low", "参数偏低");
+
         if (alertState[key] !== "low") {
           alert(msg);
         }
+
         alertState[key] = "low";
         return msg;
       }
@@ -579,9 +765,11 @@
       if (currentValue > highLimit) {
         const msg = `${paramConfig[key].name}过高！当前值 ${currentValue}${paramConfig[key].unit}，高于推荐范围上限的20%。`;
         setParamStyle(key, "high", "参数偏高");
+
         if (alertState[key] !== "high") {
           alert(msg);
         }
+
         alertState[key] = "high";
         return msg;
       }
@@ -599,7 +787,11 @@
         warnListEl.innerHTML = "";
 
         Object.keys(paramConfig).forEach(key => {
-          resetParamStyle(key);
+          if (currentData[key] === null || currentData[key] === undefined) {
+            setWaitingStyle(key);
+          } else {
+            resetParamStyle(key);
+          }
           alertState[key] = "normal";
         });
 
@@ -608,10 +800,10 @@
 
       const warnMessages = [];
 
-      const tempMsg = checkSingleParam("temp", Number(currentData.temp), rec.recommendation.temp);
-      const humiMsg = checkSingleParam("humi", Number(currentData.humi), rec.recommendation.humi);
-      const lightMsg = checkSingleParam("light", Number(currentData.light), rec.recommendation.light);
-      const soilMsg = checkSingleParam("soil", Number(currentData.soil), rec.recommendation.soil);
+      const tempMsg = checkSingleParam("temp", currentData.temp, rec.recommendation.temp);
+      const humiMsg = checkSingleParam("humi", currentData.humi, rec.recommendation.humi);
+      const lightMsg = checkSingleParam("light", currentData.light, rec.recommendation.light);
+      const soilMsg = checkSingleParam("soil", currentData.soil, rec.recommendation.soil);
 
       [tempMsg, humiMsg, lightMsg, soilMsg].forEach(msg => {
         if (msg) warnMessages.push(msg);
@@ -626,29 +818,6 @@
       }
     }
 
-    function saveHistoryRecord(data) {
-      let history = [];
-
-      try {
-        history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch (e) {
-        history = [];
-      }
-
-      history.push({
-        time: new Date().toISOString(),
-        temp: Number(data.temp ?? 0),
-        humi: Number(data.humi ?? 0),
-        light: Number(data.light ?? 0),
-        soil: Number(data.soil ?? 0)
-      });
-
-      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      history = history.filter(item => new Date(item.time).getTime() >= sevenDaysAgo);
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    }
-
     renderRecommendationInfo();
 
     const client = mqtt.connect("wss://mqtt.flespi.io:443", {
@@ -656,52 +825,63 @@
       password: "",
       clientId: "greenhouse_web_" + Math.random().toString(16).substr(2, 8),
       clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000
+      connectTimeout: 6000,
+      reconnectPeriod: 1500
     });
 
     client.on("connect", function () {
-      statusEl.textContent = "已连接";
+      setConnectionState("ok", "已连接");
+
       client.subscribe(topic, function (err) {
         if (err) {
-          statusEl.textContent = "订阅失败";
+          setConnectionState("error", "订阅失败");
           console.error("订阅失败：", err);
+        } else {
+          console.log("订阅成功：", topic);
         }
       });
     });
 
     client.on("reconnect", function () {
-      statusEl.textContent = "重连中";
+      setConnectionState("warn", "重连中");
+    });
+
+    client.on("offline", function () {
+      setConnectionState("warn", "离线中");
     });
 
     client.on("error", function (err) {
-      statusEl.textContent = "连接失败";
+      setConnectionState("error", "连接失败");
       console.error("MQTT 连接错误：", err);
     });
 
-    client.on("message", function (recvTopic, message) {
-      try {
-        const data = JSON.parse(message.toString());
+    client.on("message", function (recvTopic, message, packet) {
+      const payloadText = message.toString();
 
-        const currentData = {
-          temp: Number(data.temp ?? 0),
-          humi: Number(data.humi ?? 0),
-          light: Number(data.light ?? 0),
-          soil: Number(data.soil ?? 0)
-        };
+      console.log("收到原始数据：", payloadText);
+      console.log("是否为保留消息 retain：", packet && packet.retain);
 
-        tempEl.textContent = data.temp ?? "--";
-        humiEl.textContent = data.humi ?? "--";
-        lightEl.textContent = data.light ?? "--";
-        soilEl.textContent = data.soil ?? "--";
-        updateTimeEl.textContent = new Date().toLocaleString();
+      const rawData = parsePayload(payloadText);
+      const currentData = normalizeMqttData(rawData);
 
-        saveHistoryRecord(currentData);
-        runAlertCheck(currentData);
-      } catch (e) {
-        statusEl.textContent = "数据格式错误";
-        console.error("JSON 解析失败：", e);
+      console.log("解析后的数据：", currentData);
+
+      const hasAnyData =
+        currentData.temp !== null ||
+        currentData.humi !== null ||
+        currentData.light !== null ||
+        currentData.soil !== null;
+
+      if (!hasAnyData) {
+        setConnectionState("error", "数据字段错误");
+        console.error("未识别到有效字段，请检查硬件端发送的字段名。当前收到：", rawData);
+        return;
       }
+
+      setConnectionState("ok", "已连接");
+      updateDisplay(currentData);
+      saveHistoryRecord(currentData);
+      runAlertCheck(currentData);
     });
 
     window.addEventListener("storage", function (e) {
